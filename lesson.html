@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – الدروس</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* ── VIEW TRANSITIONS ── */
+    .view { display:none; animation:fadeUp .4s ease both; }
+    .view.active { display:block; }
+
+    /* ══════════════════════════════
+       VIEW 1 — LESSONS LIST
+    ══════════════════════════════ */
+    .lessons-grid {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:20px; margin-top:4px;
+    }
+    @media(max-width:1100px){ .lessons-grid{ grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:700px){ .lessons-grid{ grid-template-columns:1fr; } }
+
+    .lcard {
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg); overflow:hidden; cursor:pointer;
+      transition:transform .25s, border-color .25s, box-shadow .25s;
+    }
+    .lcard:hover { transform:translateY(-6px); border-color:rgba(59,91,219,.4); box-shadow:0 20px 50px rgba(0,0,0,.35); }
+    .lcard-thumb {
+      height:130px; display:flex; align-items:center; justify-content:center;
+      position:relative; overflow:hidden;
+    }
+    .lcard-thumb i { font-size:2.8rem; color:rgba(255,255,255,.85); position:relative; z-index:1; }
+    .lcard-thumb::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to bottom, transparent 30%, rgba(0,0,0,.45));
+    }
+    .lcard-done-badge {
+      position:absolute; top:12px; left:12px; z-index:2;
+      background:var(--green); color:var(--white);
+      width:28px; height:28px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.75rem;
+    }
+    .lcard-body { padding:18px; }
+    .lcard-subject { font-size:.72rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; }
+    .lcard-title { font-weight:700; font-size:.98rem; margin-bottom:8px; line-height:1.4; }
+    .lcard-meta { display:flex; gap:12px; color:var(--muted); font-size:.77rem; align-items:center; }
+    .lcard-meta i { font-size:.8rem; }
+    .lcard-progress { margin-top:14px; }
+    .lcard-progress-bar { height:4px; background:var(--glass-border); border-radius:10px; overflow:hidden; margin-top:5px; }
+    .lcard-progress-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--blue),var(--gold)); }
+
+    /* difficulty dot */
+    .diff-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-left:4px; }
+    .diff-easy { background:var(--green); }
+    .diff-medium { background:var(--gold); }
+    .diff-hard { background:#ef4444; }
+
+    /* ══════════════════════════════
+       VIEW 2 — LESSON CONTENT
+    ══════════════════════════════ */
+    .lesson-layout {
+      display:grid; grid-template-columns:1fr 320px;
+      gap:24px; align-items:start;
+    }
+    @media(max-width:960px){ .lesson-layout{ grid-template-columns:1fr; } }
+
+    /* breadcrumb */
+    .breadcrumb {
+      display:flex; align-items:center; gap:8px;
+      font-size:.82rem; color:var(--muted); margin-bottom:24px;
+      flex-wrap:wrap;
+    }
+    .breadcrumb a { color:var(--muted); text-decoration:none; transition:color .2s; }
+    .breadcrumb a:hover { color:var(--text); }
+    .breadcrumb i { font-size:.6rem; }
+
+    /* section tabs */
+    .section-tabs {
+      display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;
+    }
+    .sec-tab {
+      padding:8px 18px; border-radius:50px;
+      background:var(--glass); border:1px solid var(--glass-border);
+      font-size:.82rem; font-weight:700; color:var(--muted);
+      cursor:pointer; transition:all .2s; white-space:nowrap;
+    }
+    .sec-tab:hover { border-color:rgba(59,91,219,.4); color:var(--text); }
+    .sec-tab.active { background:var(--blue-dim); border-color:var(--blue); color:var(--blue); }
+    .sec-tab.done { background:var(--green-dim); border-color:rgba(34,197,94,.3); color:var(--green); }
+
+    /* lesson image placeholder */
+    .lesson-img {
+      width:100%; height:220px; border-radius:var(--radius);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:12px; margin-bottom:22px; position:relative; overflow:hidden;
+    }
+    .lesson-img i { font-size:4rem; color:rgba(255,255,255,.8); position:relative; z-index:1; }
+    .lesson-img-label {
+      position:relative; z-index:1; font-size:.75rem; font-weight:700;
+      color:rgba(255,255,255,.6); letter-spacing:.5px;
+    }
+    .lesson-img::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.3));
+    }
+
+    /* section content */
+    .section-content-box {
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg); padding:28px; margin-bottom:20px;
+    }
+    .section-content-title {
+      font-family:'Tajawal',sans-serif; font-size:1.2rem; font-weight:900;
+      margin-bottom:16px; display:flex; align-items:center; gap:10px;
+    }
+    .section-text {
+      color:var(--text-soft); font-size:.93rem; line-height:2;
+      white-space:pre-line;
+    }
+
+    /* AI tip box */
+    .ai-tip {
+      background:linear-gradient(135deg,rgba(59,91,219,.15),rgba(91,127,255,.08));
+      border:1px solid rgba(59,91,219,.25); border-radius:var(--radius);
+      padding:16px 18px; display:flex; gap:12px; align-items:flex-start;
+      margin-top:18px;
+    }
+    .ai-tip-icon {
+      width:36px; height:36px; border-radius:10px; flex-shrink:0;
+      background:var(--blue); display:flex; align-items:center; justify-content:center;
+      font-size:.9rem; color:var(--white);
+    }
+    .ai-tip-text { font-size:.85rem; color:var(--text-soft); line-height:1.75; }
+    .ai-tip-label { font-size:.7rem; font-weight:700; color:var(--blue); margin-bottom:4px; letter-spacing:.5px; }
+
+    /* nav between sections */
+    .section-nav {
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+    }
+    .section-counter { font-size:.82rem; color:var(--muted); }
+
+    /* ── AI COMPANION (sidebar) ── */
+    .ai-sidebar { position:sticky; top:90px; }
+    .ai-header {
+      background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));
+      padding:16px 18px; border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      display:flex; align-items:center; gap:12px;
+    }
+    .ai-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:var(--gold); display:flex; align-items:center; justify-content:center;
+      font-size:.95rem; color:var(--bg); font-weight:900; flex-shrink:0;
+    }
+    .ai-name { font-weight:700; font-size:.92rem; }
+    .ai-online { font-size:.72rem; color:rgba(255,255,255,.55); display:flex; align-items:center; gap:5px; }
+    .ai-online-dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 5px var(--green); animation:pulse 2s infinite; }
+
+    .ai-messages {
+      background:rgba(7,13,31,.7); border:1px solid var(--glass-border);
+      border-top:none; border-bottom:none;
+      height:320px; overflow-y:auto; padding:16px;
+      display:flex; flex-direction:column; gap:12px;
+      scrollbar-width:thin; scrollbar-color:var(--glass-border) transparent;
+    }
+    .ai-msg { display:flex; gap:8px; max-width:90%; }
+    .ai-msg.bot { align-self:flex-end; }
+    .ai-msg.user { align-self:flex-start; flex-direction:row-reverse; }
+    .ai-msg-av {
+      width:28px; height:28px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700;
+    }
+    .ai-msg.bot .ai-msg-av { background:var(--blue); color:var(--white); }
+    .ai-msg.user .ai-msg-av { background:var(--gold-dim); color:var(--gold); border:1px solid rgba(245,200,66,.3); font-size:.65rem; }
+    .ai-msg-bbl {
+      padding:10px 14px; border-radius:14px; font-size:.82rem; line-height:1.7;
+    }
+    .ai-msg.bot .ai-msg-bbl {
+      background:var(--blue-dim); border:1px solid rgba(59,91,219,.2);
+      border-bottom-left-radius:4px;
+    }
+    .ai-msg.user .ai-msg-bbl {
+      background:var(--glass-md); border:1px solid var(--glass-border);
+      border-bottom-right-radius:4px; text-align:right;
+    }
+    .ai-typing { display:flex; gap:4px; align-items:center; padding:10px 14px; }
+    .ai-typing span {
+      width:6px; height:6px; border-radius:50%; background:var(--muted);
+      animation:typing .9s infinite;
+    }
+    .ai-typing span:nth-child(2) { animation-delay:.2s; }
+    .ai-typing span:nth-child(3) { animation-delay:.4s; }
+    @keyframes typing { 0%,100%{transform:translateY(0);opacity:.4;} 50%{transform:translateY(-5px);opacity:1;} }
+
+    .ai-input-row {
+      background:rgba(7,13,31,.7); border:1px solid var(--glass-border);
+      border-radius:0 0 var(--radius-lg) var(--radius-lg);
+      padding:12px 14px; display:flex; gap:8px;
+    }
+    .ai-inp {
+      flex:1; padding:9px 14px;
+      background:var(--glass-md); border:1px solid var(--glass-border);
+      border-radius:50px; color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:.82rem;
+      outline:none; transition:border-color .2s;
+    }
+    .ai-inp:focus { border-color:var(--blue); }
+    .ai-inp::placeholder { color:var(--muted); }
+    .ai-send {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--blue); border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--white); font-size:.8rem;
+      transition:box-shadow .2s;
+    }
+    .ai-send:hover { box-shadow:0 0 14px var(--blue-glow); }
+
+    /* quick replies */
+    .ai-quick {
+      display:flex; gap:6px; flex-wrap:wrap;
+      padding:10px 14px 0;
+      background:rgba(7,13,31,.7);
+      border-right:1px solid var(--glass-border);
+      border-left:1px solid var(--glass-border);
+    }
+    .ai-qbtn {
+      padding:5px 12px; border-radius:50px;
+      background:var(--glass); border:1px solid var(--glass-border);
+      color:var(--muted); font-size:.73rem; font-weight:600;
+      cursor:pointer; transition:all .2s; font-family:'Cairo',sans-serif;
+    }
+    .ai-qbtn:hover { background:var(--blue-dim); border-color:rgba(59,91,219,.4); color:var(--blue); }
+
+    /* ══════════════════════════════
+       VIEW 3 — QUIZ
+    ══════════════════════════════ */
+    .quiz-layout {
+      max-width:720px; margin:0 auto;
+    }
+    .quiz-header-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:28px; flex-wrap:wrap; gap:12px;
+    }
+    .quiz-title { font-family:'Tajawal',sans-serif; font-size:1.3rem; font-weight:900; }
+    .quiz-counter { font-size:.85rem; color:var(--muted); }
+    .quiz-progress-track { height:6px; background:var(--glass-border); border-radius:10px; overflow:hidden; margin-bottom:28px; }
+    .quiz-progress-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--blue),var(--gold)); transition:width .4s; }
+
+    .quiz-q-box {
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg); padding:28px 28px 20px;
+      margin-bottom:18px;
+    }
+    .quiz-q-num { font-size:.75rem; font-weight:700; color:var(--blue); letter-spacing:.8px; margin-bottom:10px; }
+    .quiz-q-text { font-family:'Tajawal',sans-serif; font-size:1.15rem; font-weight:700; line-height:1.5; }
+
+    .quiz-option {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 18px; border-radius:var(--radius);
+      background:var(--glass); border:2px solid var(--glass-border);
+      cursor:pointer; transition:all .2s; margin-bottom:10px;
+    }
+    .quiz-option:hover:not(.locked) { border-color:rgba(59,91,219,.45); background:var(--blue-dim); }
+    .quiz-option.selected { border-color:var(--blue); background:var(--blue-dim); }
+    .quiz-option.correct { border-color:var(--green); background:var(--green-dim); }
+    .quiz-option.wrong { border-color:#ef4444; background:rgba(239,68,68,.1); }
+    .quiz-opt-letter {
+      width:34px; height:34px; border-radius:50%; flex-shrink:0;
+      background:var(--glass-md); border:1px solid var(--glass-border);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:.82rem; color:var(--muted); transition:all .2s;
+    }
+    .quiz-option.selected .quiz-opt-letter { background:var(--blue); color:var(--white); border-color:var(--blue); }
+    .quiz-option.correct .quiz-opt-letter { background:var(--green); color:var(--white); border-color:var(--green); }
+    .quiz-option.wrong .quiz-opt-letter { background:#ef4444; color:var(--white); border-color:#ef4444; }
+    .quiz-opt-text { font-size:.9rem; font-weight:600; }
+
+    .quiz-feedback {
+      padding:12px 16px; border-radius:var(--radius); margin-bottom:16px;
+      font-size:.85rem; font-weight:600; display:none; align-items:center; gap:8px;
+    }
+    .quiz-feedback.show { display:flex; }
+    .quiz-feedback.correct-fb { background:var(--green-dim); border:1px solid rgba(34,197,94,.25); color:var(--green); }
+    .quiz-feedback.wrong-fb { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:#ef4444; }
+
+    .quiz-nav { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+
+    /* RESULT SCREEN */
+    .result-screen { text-align:center; padding:20px 0; }
+    .result-circle {
+      width:140px; height:140px; border-radius:50%; margin:0 auto 28px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .result-circle svg { position:absolute; inset:0; transform:rotate(-90deg); }
+    .result-circle-inner { position:relative; z-index:1; }
+    .result-score { font-family:'Tajawal',sans-serif; font-size:2.2rem; font-weight:900; line-height:1; }
+    .result-score-label { font-size:.72rem; color:var(--muted); margin-top:2px; }
+    .result-title { font-family:'Tajawal',sans-serif; font-size:1.5rem; font-weight:900; margin-bottom:10px; }
+    .result-sub { color:var(--muted); font-size:.9rem; margin-bottom:28px; line-height:1.7; }
+    .result-stats {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;
+    }
+    .result-stat {
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--radius); padding:16px 12px; text-align:center;
+    }
+    .result-stat-val { font-family:'Tajawal',sans-serif; font-size:1.5rem; font-weight:900; }
+    .result-stat-lbl { font-size:.72rem; color:var(--muted); margin-top:4px; }
+    .result-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+    
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">
+     <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+    </a>
+    <div class="topbar-actions">
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="top-avatar">أ</div>
+        <span class="topbar-name" id="top-name">المستخدم</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> خروج
+      </button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section-label">القائمة</div>
+      <a class="sidebar-item" href="dashboard.html"><i class="fa-solid fa-house"></i> الصفحة الرئيسية</a>
+      <a class="sidebar-item active" href="lesson.html"><i class="fa-solid fa-book-open"></i> الدروس</a>
+      <a class="sidebar-item" href="#"><i class="fa-solid fa-chart-line"></i> التقارير</a>
+      <a class="sidebar-item" href="#"><i class="fa-solid fa-gear"></i> الإعدادات</a>
+      <div class="sidebar-bottom">
+        <button class="sidebar-item" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ════════ VIEW 1: LESSONS LIST ════════ -->
+      <div class="view active" id="view-list">
+        <div class="page-header">
+          <h1><i class="fa-solid fa-book-open" style="color:var(--blue);margin-left:10px"></i> الدروس</h1>
+          <p>اختر درساً لتبدأ رحلة التعلم مع مرشدك الذكي</p>
+        </div>
+
+        <!-- filters -->
+        <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+          <button class="sec-tab active" onclick="filterLessons('all',this)">الكل</button>
+          <button class="sec-tab" onclick="filterLessons('رياضيات',this)">رياضيات</button>
+          <button class="sec-tab" onclick="filterLessons('لغة عربية',this)">لغة عربية</button>
+          <button class="sec-tab" onclick="filterLessons('علوم',this)">علوم</button>
+        </div>
+
+        <div class="lessons-grid" id="lessons-grid"></div>
+      </div>
+
+      <!-- ════════ VIEW 2: LESSON CONTENT ════════ -->
+      <div class="view" id="view-lesson">
+        <!-- breadcrumb -->
+        <div class="breadcrumb">
+          <a href="#" onclick="showView('list')"><i class="fa-solid fa-house"></i> الدروس</a>
+          <i class="fa-solid fa-chevron-left"></i>
+          <span id="bc-lesson-name">الدرس</span>
+        </div>
+
+        <div class="lesson-layout">
+          <!-- LEFT: content -->
+          <div>
+            <!-- lesson header card -->
+            <div class="card card-blue" style="margin-bottom:20px">
+              <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+                <div id="lesson-header-icon" style="width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0"></div>
+                <div style="flex:1">
+                  <div id="lesson-subject-badge" class="badge badge-blue" style="margin-bottom:8px"></div>
+                  <h2 id="lesson-title" style="font-family:'Tajawal',sans-serif;font-size:1.3rem;font-weight:900;margin-bottom:6px"></h2>
+                  <div style="display:flex;gap:16px;color:var(--muted);font-size:.8rem;flex-wrap:wrap">
+                    <span><i class="fa-regular fa-clock"></i> <span id="lesson-duration"></span></span>
+                    <span><i class="fa-solid fa-layer-group"></i> <span id="lesson-sections-count"></span> أجزاء</span>
+                    <span id="lesson-diff-wrap"></span>
+                  </div>
+                </div>
+                <button class="btn btn-gold btn-sm" id="btn-start-quiz" onclick="startQuiz()" style="display:none">
+                  <i class="fa-solid fa-pen-to-square"></i> ابدأ الكويز
+                </button>
+              </div>
+              <!-- overall lesson progress -->
+              <div style="margin-top:16px">
+                <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:6px">
+                  <span>تقدمك في الدرس</span>
+                  <span id="lesson-prog-pct">0٪</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" id="lesson-prog-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+
+            <!-- section tabs -->
+            <div class="section-tabs" id="section-tabs"></div>
+
+            <!-- lesson image -->
+            <div class="lesson-img" id="lesson-img"></div>
+
+            <!-- section content -->
+            <div class="section-content-box">
+              <div class="section-content-title">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--white);flex-shrink:0" id="sec-num-badge"></div>
+                <span id="sec-title"></span>
+              </div>
+              <div class="section-text" id="sec-content"></div>
+              <div class="ai-tip" id="ai-tip-box">
+                <div class="ai-tip-icon"><i class="fa-solid fa-robot"></i></div>
+                <div>
+                  <div class="ai-tip-label">نصيحة المرشد الذكي</div>
+                  <div class="ai-tip-text" id="ai-tip-text"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- nav -->
+            <div class="section-nav">
+              <button class="btn btn-ghost btn-sm" id="btn-prev-sec" onclick="prevSection()">
+                <i class="fa-solid fa-arrow-right"></i> السابق
+              </button>
+              <span class="section-counter" id="sec-counter"></span>
+              <button class="btn btn-primary btn-sm" id="btn-next-sec" onclick="nextSection()">
+                التالي <i class="fa-solid fa-arrow-left"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT: AI Companion -->
+          <div class="ai-sidebar">
+            <a c style="text-decoration: none; color: white;" href="companion.html"><div class="ai-header">
+              <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
+              <div>
+                <div class="ai-name">نور — مرشدك الذكي</div>
+                <div class="ai-online"><div class="ai-online-dot"></div> متاح الآن</div>
+              </div>
+            </div></a>
+            <div class="ai-quick" id="ai-quick-replies">
+              <div class="ai-qbtn" onclick="sendQuick('لم أفهم، ممكن تشرح أكثر؟')">لم أفهم</div>
+              <div class="ai-qbtn" onclick="sendQuick('مثال إضافي من فضلك')">مثال</div>
+              <div class="ai-qbtn" onclick="sendQuick('هل أنا مستعد للكويز؟')">الكويز</div>
+              <div class="ai-qbtn" onclick="sendQuick('شكراً!')">شكراً!</div>
+            </div>
+            <div class="ai-messages" id="ai-messages"></div>
+            <div class="ai-input-row">
+              <button class="ai-send" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+              <input class="ai-inp" id="ai-inp" placeholder="اسأل نور أي سؤال..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════ VIEW 3: QUIZ ════════ -->
+      <div class="view" id="view-quiz">
+        <div class="quiz-layout">
+
+          <!-- breadcrumb -->
+          <div class="breadcrumb">
+            <a href="#" onclick="showView('list')"><i class="fa-solid fa-house"></i> الدروس</a>
+            <i class="fa-solid fa-chevron-left"></i>
+            <a href="#" onclick="showView('lesson')" id="bc-quiz-lesson">الدرس</a>
+            <i class="fa-solid fa-chevron-left"></i>
+            <span>الكويز</span>
+          </div>
+
+          <!-- QUIZ ACTIVE -->
+          <div id="quiz-active">
+            <div class="quiz-header-bar">
+              <div class="quiz-title"><i class="fa-solid fa-pen-to-square" style="color:var(--gold);margin-left:8px"></i> اختبر نفسك</div>
+              <div class="quiz-counter" id="quiz-counter">السؤال 1 من 5</div>
+            </div>
+            <div class="quiz-progress-track">
+              <div class="quiz-progress-fill" id="quiz-prog" style="width:0%"></div>
+            </div>
+            <div class="quiz-q-box">
+              <div class="quiz-q-num" id="quiz-q-num">السؤال ١</div>
+              <div class="quiz-q-text" id="quiz-q-text"></div>
+            </div>
+            <div id="quiz-options"></div>
+            <div class="quiz-feedback" id="quiz-feedback"></div>
+            <div class="quiz-nav">
+              <div style="font-size:.8rem;color:var(--muted)" id="quiz-hint">اختر الإجابة أولاً</div>
+              <button class="btn btn-primary btn-sm" id="btn-quiz-next" onclick="nextQuizQ()" style="display:none">
+                التالي <i class="fa-solid fa-arrow-left"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- RESULT SCREEN -->
+          <div id="quiz-result" style="display:none">
+            <div class="result-screen fade-up">
+              <div class="result-circle" id="result-circle">
+                <svg viewBox="0 0 140 140" width="140" height="140">
+                  <circle cx="70" cy="70" r="60" fill="none" stroke="var(--glass-border)" stroke-width="10"/>
+                  <circle cx="70" cy="70" r="60" fill="none" id="result-arc"
+                    stroke="var(--gold)" stroke-width="10" stroke-linecap="round"
+                    stroke-dasharray="377" stroke-dashoffset="377"/>
+                </svg>
+                <div class="result-circle-inner">
+                  <div class="result-score" id="res-score">0٪</div>
+                  <div class="result-score-label">نتيجتك</div>
+                </div>
+              </div>
+              <h2 class="result-title" id="res-title">ممتاز!</h2>
+              <p class="result-sub" id="res-sub">أنت تتحسن باستمرار!</p>
+              <div class="result-stats">
+                <div class="result-stat">
+                  <div class="result-stat-val" id="res-correct" style="color:var(--green)">0</div>
+                  <div class="result-stat-lbl">إجابة صحيحة</div>
+                </div>
+                <div class="result-stat">
+                  <div class="result-stat-val" id="res-wrong" style="color:#ef4444">0</div>
+                  <div class="result-stat-lbl">إجابة خاطئة</div>
+                </div>
+                <div class="result-stat">
+                  <div class="result-stat-val" id="res-points" style="color:var(--gold)">+0</div>
+                  <div class="result-stat-lbl">نقطة مكتسبة</div>
+                </div>
+              </div>
+              <div class="result-btns">
+                <button class="btn btn-ghost" onclick="retryQuiz()"><i class="fa-solid fa-rotate-right"></i> إعادة الكويز</button>
+                <button class="btn btn-primary" onclick="showView('list')"><i class="fa-solid fa-book-open"></i> دروس أخرى</button>
+                <button class="btn btn-gold" onclick="goTo('dashboard.html')"><i class="fa-solid fa-house"></i> الرئيسية</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+  if (!guardAuth()) throw '';
+
+  const user = Session.currentUser();
+  document.getElementById('top-avatar').textContent = user.avatar || user.name.charAt(0);
+  document.getElementById('top-name').textContent = user.name;
+
+  /* ══════════════════════════════
+     STATE
+  ══════════════════════════════ */
+  let currentLesson = null;
+  let currentSectionIdx = 0;
+  let doneSections = new Set();
+  let aiHistory = [];
+
+  // quiz state
+  let quizQuestions = [];
+  let quizIdx = 0;
+  let quizAnswered = false;
+  let quizCorrect = 0;
+  let quizWrong = 0;
+
+  /* ══════════════════════════════
+     VIEW SWITCHER
+  ══════════════════════════════ */
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ══════════════════════════════
+     VIEW 1 – LESSONS LIST
+  ══════════════════════════════ */
+  function renderLessons(filter = 'all') {
+    const grid = document.getElementById('lessons-grid');
+    const list = filter === 'all' ? MOCK_LESSONS : MOCK_LESSONS.filter(l => l.subject === filter);
+    grid.innerHTML = list.map(l => {
+      const diffClass = l.difficulty === 'سهل' ? 'diff-easy' : l.difficulty === 'متوسط' ? 'diff-medium' : 'diff-hard';
+      const prog = l.completed ? 100 : 0;
+      return `
+        <div class="lcard fade-up" onclick="openLesson(${l.id})">
+          <div class="lcard-thumb" style="background:linear-gradient(135deg,${l.color}cc,${l.color}88)">
+            ${l.completed ? '<div class="lcard-done-badge"><i class="fa-solid fa-check"></i></div>' : ''}
+            <i class="fa-solid ${l.icon}"></i>
+          </div>
+          <div class="lcard-body">
+            <div class="lcard-subject" style="color:${l.color}">${l.subject}</div>
+            <div class="lcard-title">${l.title}</div>
+            <div class="lcard-meta">
+              <span><i class="fa-regular fa-clock"></i> ${l.duration}</span>
+              <span><i class="fa-solid fa-layer-group"></i> ${l.sections.length} أجزاء</span>
+              <span><span class="diff-dot ${diffClass}"></span>${l.difficulty}</span>
+            </div>
+            <div class="lcard-progress">
+              <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:4px">
+                <span>${l.completed ? 'مكتمل' : 'لم يبدأ'}</span>
+                <span>${prog}٪</span>
+              </div>
+              <div class="lcard-progress-bar">
+                <div class="lcard-progress-fill" style="width:${prog}%"></div>
+              </div>
+            </div>
+            ${l.score ? `<div style="margin-top:10px"><span class="badge badge-gold"><i class="fa-solid fa-star"></i> ${l.score}٪ في الكويز</span></div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterLessons(f, btn) {
+    document.querySelectorAll('.section-tabs .sec-tab, div > .sec-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderLessons(f);
+  }
+
+  renderLessons();
+
+  /* ══════════════════════════════
+     VIEW 2 – LESSON CONTENT
+  ══════════════════════════════ */
+  function openLesson(id) {
+    currentLesson = MOCK_LESSONS.find(l => l.id === id);
+    currentSectionIdx = 0;
+    doneSections.clear();
+    aiHistory = [];
+
+    // breadcrumb
+    document.getElementById('bc-lesson-name').textContent = currentLesson.title;
+    document.getElementById('bc-quiz-lesson').textContent = currentLesson.title;
+
+    // header
+    const hi = document.getElementById('lesson-header-icon');
+    hi.innerHTML = `<i class="fa-solid ${currentLesson.icon}" style="color:white"></i>`;
+    hi.style.background = `linear-gradient(135deg,${currentLesson.color}cc,${currentLesson.color}88)`;
+    document.getElementById('lesson-title').textContent = currentLesson.title;
+    document.getElementById('lesson-subject-badge').innerHTML = `<i class="fa-solid fa-tag"></i> ${currentLesson.subject}`;
+    document.getElementById('lesson-duration').textContent = currentLesson.duration;
+    document.getElementById('lesson-sections-count').textContent = currentLesson.sections.length;
+    const diffMap = { 'سهل': 'diff-easy', 'متوسط': 'diff-medium', 'صعب': 'diff-hard' };
+    document.getElementById('lesson-diff-wrap').innerHTML =
+      `<span><span class="diff-dot ${diffMap[currentLesson.difficulty] || ''}"></span>${currentLesson.difficulty}</span>`;
+
+    // AI greeting
+    document.getElementById('ai-messages').innerHTML = '';
+    addAIMsg('bot', `أهلاً! أنا نور، مرشدك الذكي 🤖 سنتعلم معاً "${currentLesson.title}". لا تتردد في سؤالي عن أي شيء!`);
+
+    renderSection();
+    showView('lesson');
+  }
+
+  function renderSection() {
+    const secs = currentLesson.sections;
+    const sec = secs[currentSectionIdx];
+
+    // tabs
+    const tabs = document.getElementById('section-tabs');
+    tabs.innerHTML = secs.map((s, i) => {
+      const cls = i === currentSectionIdx ? 'active' : doneSections.has(i) ? 'done' : '';
+      return `<div class="sec-tab ${cls}" onclick="jumpSection(${i})">
+        ${doneSections.has(i) ? '<i class="fa-solid fa-check"></i> ' : ''}${s.title}
+      </div>`;
+    }).join('');
+
+    // image placeholder
+    const img = document.getElementById('lesson-img');
+    img.style.background = `linear-gradient(135deg,${sec.image_color}dd,${sec.image_color}88)`;
+    img.innerHTML = `
+      <i class="fa-solid ${sec.image_placeholder}"></i>
+      <div class="lesson-img-label">صورة توضيحية — ${sec.title}</div>`;
+
+    // content
+    document.getElementById('sec-num-badge').textContent = currentSectionIdx + 1;
+    document.getElementById('sec-title').textContent = sec.title;
+    document.getElementById('sec-content').textContent = sec.summary;
+    document.getElementById('ai-tip-text').textContent = sec.ai_tip;
+
+    // counter & nav buttons
+    document.getElementById('sec-counter').textContent = `${currentSectionIdx + 1} / ${secs.length}`;
+    document.getElementById('btn-prev-sec').style.visibility = currentSectionIdx === 0 ? 'hidden' : 'visible';
+
+    const isLast = currentSectionIdx === secs.length - 1;
+    const nextBtn = document.getElementById('btn-next-sec');
+    if (isLast) {
+      nextBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> ابدأ الكويز`;
+      nextBtn.onclick = startQuiz;
+      nextBtn.className = 'btn btn-gold btn-sm';
+    } else {
+      nextBtn.innerHTML = `التالي <i class="fa-solid fa-arrow-left"></i>`;
+      nextBtn.onclick = nextSection;
+      nextBtn.className = 'btn btn-primary btn-sm';
+    }
+
+    // progress
+    const pct = Math.round((doneSections.size / secs.length) * 100);
+    document.getElementById('lesson-prog-bar').style.width = pct + '%';
+    document.getElementById('lesson-prog-pct').textContent = pct + '٪';
+    document.getElementById('btn-start-quiz').style.display = doneSections.size > 0 ? 'inline-flex' : 'none';
+  }
+
+  function jumpSection(i) {
+    doneSections.add(currentSectionIdx);
+    currentSectionIdx = i;
+    renderSection();
+    // AI comment
+    const msgs = ['ممتاز! انتقلت للجزء التالي. هل تريد أن أشرح لك أكثر؟', 'جيد! خذ وقتك في قراءة هذا الجزء.'];
+    setTimeout(() => addAIMsg('bot', msgs[Math.floor(Math.random() * msgs.length)]), 600);
+  }
+
+  function nextSection() {
+    doneSections.add(currentSectionIdx);
+    if (currentSectionIdx < currentLesson.sections.length - 1) {
+      currentSectionIdx++;
+      renderSection();
+      setTimeout(() => addAIMsg('bot', getAIResponse('encouragement')), 500);
+    }
+  }
+
+  function prevSection() {
+    if (currentSectionIdx > 0) { currentSectionIdx--; renderSection(); }
+  }
+
+  /* ══════════════════════════════
+     AI COMPANION
+  ══════════════════════════════ */
+  function addAIMsg(role, text) {
+    const box = document.getElementById('ai-messages');
+    const isBot = role === 'bot';
+    const av = isBot
+      ? `<div class="ai-msg-av" style="background:var(--blue);color:var(--white)"><i class="fa-solid fa-robot" style="font-size:.7rem"></i></div>`
+      : `<div class="ai-msg-av" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(245,200,66,.3)">${user.avatar||'أ'}</div>`;
+    box.innerHTML += `
+      <div class="ai-msg ${isBot ? 'bot' : 'user'}">
+        ${av}
+        <div class="ai-msg-bbl">${text}</div>
+      </div>`;
+    box.scrollTop = box.scrollHeight;
+    aiHistory.push({ role, text });
+  }
+
+  function showTyping() {
+    const box = document.getElementById('ai-messages');
+    const el = document.createElement('div');
+    el.className = 'ai-msg bot'; el.id = 'typing-indicator';
+    el.innerHTML = `
+      <div class="ai-msg-av" style="background:var(--blue);color:var(--white)"><i class="fa-solid fa-robot" style="font-size:.7rem"></i></div>
+      <div class="ai-msg-bbl"><div class="ai-typing"><span></span><span></span><span></span></div></div>`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+
+  function sendMsg() {
+    const inp = document.getElementById('ai-inp');
+    const txt = inp.value.trim();
+    if (!txt) return;
+    inp.value = '';
+    addAIMsg('user', txt);
+    showTyping();
+    setTimeout(() => {
+      removeTyping();
+      const lower = txt.toLowerCase();
+      let ctx = 'default';
+      if (lower.includes('لم أفهم') || lower.includes('اشرح') || lower.includes('مش فاهم')) ctx = 'help';
+      else if (lower.includes('شكر')) ctx = 'encouragement';
+      else if (lower.includes('كويز') || lower.includes('اختبار') || lower.includes('مستعد')) ctx = 'lesson_done';
+      else if (lower.includes('ممتاز') || lower.includes('رائع')) ctx = 'encouragement';
+      addAIMsg('bot', getAIResponse(ctx));
+    }, 1000 + Math.random() * 600);
+  }
+
+  function sendQuick(text) {
+    document.getElementById('ai-inp').value = text;
+    sendMsg();
+  }
+
+  /* ══════════════════════════════
+     VIEW 3 – QUIZ
+  ══════════════════════════════ */
+  function startQuiz() {
+    quizQuestions = currentLesson.quiz;
+    quizIdx = 0; quizAnswered = false; quizCorrect = 0; quizWrong = 0;
+    document.getElementById('quiz-active').style.display = 'block';
+    document.getElementById('quiz-result').style.display = 'none';
+    showView('quiz');
+    renderQuizQ();
+  }
+
+  function renderQuizQ() {
+    const q = quizQuestions[quizIdx];
+    const total = quizQuestions.length;
+    quizAnswered = false;
+
+    document.getElementById('quiz-counter').textContent = `السؤال ${quizIdx + 1} من ${total}`;
+    document.getElementById('quiz-q-num').textContent = `السؤال ${toArabicNum(quizIdx + 1)}`;
+    document.getElementById('quiz-q-text').textContent = q.q;
+    document.getElementById('quiz-prog').style.width = ((quizIdx / total) * 100) + '%';
+    document.getElementById('quiz-feedback').className = 'quiz-feedback';
+    document.getElementById('btn-quiz-next').style.display = 'none';
+    document.getElementById('quiz-hint').textContent = 'اختر الإجابة أولاً';
+
+    const letters = ['أ', 'ب', 'ج', 'د'];
+    document.getElementById('quiz-options').innerHTML = q.options.map((opt, i) => `
+      <div class="quiz-option" id="qopt-${i}" onclick="selectQuizOpt(${i})">
+        <div class="quiz-opt-letter">${letters[i]}</div>
+        <div class="quiz-opt-text">${opt}</div>
+      </div>`).join('');
+  }
+
+  function selectQuizOpt(i) {
+    if (quizAnswered) return;
+    quizAnswered = true;
+    const q = quizQuestions[quizIdx];
+    const isCorrect = i === q.answer;
+    if (isCorrect) quizCorrect++; else quizWrong++;
+
+    // style options
+    document.querySelectorAll('.quiz-option').forEach((el, idx) => {
+      el.classList.add('locked');
+      if (idx === i) el.classList.add(isCorrect ? 'correct' : 'wrong');
+      if (idx === q.answer && !isCorrect) el.classList.add('correct');
+    });
+
+    // feedback
+    const fb = document.getElementById('quiz-feedback');
+    fb.className = `quiz-feedback show ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+    fb.innerHTML = isCorrect
+      ? `<i class="fa-solid fa-circle-check"></i> ${getAIResponse('quiz_correct')}`
+      : `<i class="fa-solid fa-circle-xmark"></i> ${getAIResponse('quiz_wrong')}`;
+
+    document.getElementById('quiz-hint').textContent = '';
+    document.getElementById('btn-quiz-next').style.display = 'inline-flex';
+    document.getElementById('btn-quiz-next').textContent = quizIdx === quizQuestions.length - 1 ? 'عرض النتيجة' : 'التالي';
+    document.getElementById('btn-quiz-next').innerHTML = quizIdx === quizQuestions.length - 1
+      ? '<i class="fa-solid fa-flag-checkered"></i> عرض النتيجة'
+      : 'التالي <i class="fa-solid fa-arrow-left"></i>';
+  }
+
+  function nextQuizQ() {
+    if (!quizAnswered) return;
+    quizIdx++;
+    if (quizIdx < quizQuestions.length) { renderQuizQ(); }
+    else { showResult(); }
+  }
+
+  function showResult() {
+    const total = quizQuestions.length;
+    const pct = Math.round((quizCorrect / total) * 100);
+    const points = quizCorrect * 20 + (pct === 100 ? 50 : 0);
+
+    document.getElementById('quiz-active').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'block';
+
+    document.getElementById('res-score').textContent = pct + '٪';
+    document.getElementById('res-correct').textContent = quizCorrect;
+    document.getElementById('res-wrong').textContent = quizWrong;
+    document.getElementById('res-points').textContent = '+' + points;
+
+    let title, sub;
+    if (pct >= 90) { title = 'ممتاز! أنت نجم! ⭐'; sub = 'أداء رائع جداً! أنت تتقن هذا الدرس بشكل مذهل.'; }
+    else if (pct >= 70) { title = 'جيد جداً!'; sub = 'أداء جيد! مع قليل من المراجعة ستصل للكمال.'; }
+    else if (pct >= 50) { title = 'جيد، استمر!'; sub = 'نتيجة معقولة. راجع الدرس مرة أخرى ستتحسن كثيراً.'; }
+    else { title = 'لا تستسلم!'; sub = 'لا بأس، الجميع يخطئ في البداية. راجع الدرس وحاول مجدداً!'; }
+    document.getElementById('res-title').textContent = title;
+    document.getElementById('res-sub').textContent = sub;
+
+    // arc animation
+    const circumference = 377;
+    const offset = circumference - (pct / 100) * circumference;
+    const arc = document.getElementById('result-arc');
+    arc.style.stroke = pct >= 70 ? 'var(--gold)' : pct >= 50 ? 'var(--blue)' : '#ef4444';
+    setTimeout(() => { arc.style.transition = 'stroke-dashoffset 1.2s ease'; arc.style.strokeDashoffset = offset; }, 100);
+
+    // save progress
+    const saved = Session.get('lesson_progress') || {};
+    saved[currentLesson.id] = { score: pct, completed: true };
+    Session.set('lesson_progress', saved);
+  }
+
+  function retryQuiz() {
+    quizIdx = 0; quizAnswered = false; quizCorrect = 0; quizWrong = 0;
+    document.getElementById('quiz-active').style.display = 'block';
+    document.getElementById('quiz-result').style.display = 'none';
+    renderQuizQ();
+  }
+
+  /* helpers */
+  function toArabicNum(n) {
+    return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  }
+  function doLogout() { Session.remove('current_user'); goTo('login.html'); }
+
+  // scroll reveal
+  document.querySelectorAll('.reveal').forEach(el =>
+    new IntersectionObserver(([e]) => { if(e.isIntersecting) el.classList.add('visible'); }, {threshold:.1}).observe(el)
+  );
+</script>
+</body>
+</html>

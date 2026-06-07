@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – تسجيل الدخول</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .auth-wrap {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:40px 20px; position:relative; z-index:2;
+    }
+    .auth-box {
+      width:100%; max-width:460px;
+      background:rgba(11,21,48,0.88);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-xl);
+      backdrop-filter:blur(20px);
+      padding:44px 40px;
+      box-shadow:0 40px 100px rgba(0,0,0,.5);
+      animation:fadeUp .5s ease;
+    }
+    .auth-logo {
+      font-family:'Tajawal',sans-serif; font-size:1.6rem; font-weight:900;
+      display:flex; align-items:center; gap:8px; margin-bottom:32px;
+      text-decoration:none; color:var(--white);
+    }
+    .q { color:var(--gold); }
+     .logo-text { 
+      letter-spacing: -1px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: row-reverse;
+    }
+    .auth-logo .d { width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 2s infinite; }
+    .auth-title { font-family:'Tajawal',sans-serif; font-size:1.7rem; font-weight:900; margin-bottom:6px; }
+    .auth-sub { color:var(--muted); font-size:.88rem; margin-bottom:32px; }
+    .input-icon-wrap { position:relative; }
+    .input-icon-wrap .fa { position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:.9rem; }
+    .input-icon-wrap .form-input { padding-right:44px; }
+    .auth-footer { text-align:center; margin-top:24px; font-size:.85rem; color:var(--muted); }
+    .auth-footer a { color:var(--blue); font-weight:700; text-decoration:none; }
+    .mock-hint {
+      background:var(--blue-dim); border:1px solid rgba(59,91,219,.25);
+      border-radius:var(--radius); padding:14px 16px;
+      margin-bottom:24px; font-size:.8rem; color:var(--text-soft); line-height:1.8;
+    }
+    .mock-hint strong { color:var(--gold); }
+    .quick-btns { display:flex; gap:10px; margin-bottom:20px; }
+    .quick-btn {
+      flex:1; padding:10px 12px; border-radius:var(--radius-sm);
+      background:var(--glass); border:1px solid var(--glass-border);
+      cursor:pointer; font-family:'Cairo',sans-serif; font-size:.78rem;
+      font-weight:700; color:var(--muted); transition:all .2s; text-align:center;
+    }
+    .quick-btn:hover { background:var(--blue-dim); border-color:rgba(59,91,219,.35); color:var(--blue); }
+    .quick-btn i { display:block; font-size:1.1rem; margin-bottom:4px; }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <a href="../index.html" class="auth-logo">
+        <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+      </a>
+      <h1 class="auth-title">مرحباً بعودتك</h1>
+      <p class="auth-sub">سجّل دخولك للوصول إلى لوحة التحكم الخاصة بك.</p>
+
+      <div class="mock-hint">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> &nbsp; <strong>حسابات التجربة:</strong><br/>
+        ولي الأمر: <strong>ahmed@taqdar.app</strong> / <strong>123456</strong><br/>
+        الطالب: <strong>yaseen@taqdar.app</strong> / <strong>123456</strong>
+      </div>
+
+      <div style="margin-bottom:14px; font-size:.82rem; font-weight:700; color:var(--muted);">دخول سريع:</div>
+      <div class="quick-btns">
+        <div class="quick-btn" onclick="quickLogin('parent')">
+          <i class="fa-solid fa-person"></i> ولي الأمر
+        </div>
+        <div class="quick-btn" onclick="quickLogin('student')">
+          <i class="fa-solid fa-child-reaching"></i> الطالب
+        </div>
+      </div>
+
+      <div class="divider" style="margin:20px 0"></div>
+
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input class="form-input" id="inp-email" type="email" placeholder="example@email.com"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input class="form-input" id="inp-pass" type="password" placeholder="••••••••"/>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" onclick="doLogin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> تسجيل الدخول
+      </button>
+
+      <div class="auth-footer">
+        ليس لديك حساب؟ <a href="onboarding.html">أنشئ حساباً</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+
+  function quickLogin(type) {
+    const u = type === 'parent' ? MOCK_USERS.parent : MOCK_USERS.student;
+    document.getElementById('inp-email').value = u.email;
+    document.getElementById('inp-pass').value = u.password;
+  }
+
+  function doLogin() {
+    const email = document.getElementById('inp-email').value.trim();
+    const pass  = document.getElementById('inp-pass').value;
+    if (!email || !pass) { showToast('أدخل البريد الإلكتروني وكلمة المرور', 'error'); return; }
+
+    let user = null;
+    if (email === MOCK_USERS.parent.email && pass === MOCK_USERS.parent.password) {
+      user = MOCK_USERS.parent;
+    } else if (email === MOCK_USERS.student.email && pass === MOCK_USERS.student.password) {
+      user = MOCK_USERS.student;
+    }
+
+    if (!user) { showToast('البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error'); return; }
+
+    Session.set('current_user', user);
+    Session.set('onboarding_done', true);
+    showToast('أهلاً بك يا ' + user.name + '!');
+    setTimeout(() => goTo('dashboard.html'), 800);
+  }
+
+  // enter key
+  document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>

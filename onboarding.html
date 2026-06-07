@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – التعريف بك</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .onboard-wrap {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:40px 20px; position:relative; z-index:2;
+    }
+    .onboard-box {
+      width:100%; max-width:620px;
+      background:rgba(11,21,48,0.85);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-xl);
+      backdrop-filter:blur(20px);
+      overflow:hidden;
+      box-shadow:0 40px 100px rgba(0,0,0,.5);
+    }
+    /* header */
+    .ob-header {
+      background:linear-gradient(135deg,var(--blue-dark),var(--blue));
+      padding:32px 36px 28px;
+      position:relative; overflow:hidden;
+    }
+    .ob-header::before {
+      content:''; position:absolute; top:-60px; left:-60px;
+      width:200px; height:200px; border-radius:50%;
+      background:radial-gradient(circle,rgba(245,200,66,.15),transparent);
+    }
+    .ob-logo {
+      font-family:'Tajawal',sans-serif; font-size:1.4rem; font-weight:900;
+      color:var(--white); margin-bottom:20px; display:flex; align-items:center; gap:8px;
+    }
+    .q { color:var(--gold); }
+     .logo-text { 
+      letter-spacing: -1px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: row-reverse;
+    }
+    .ob-logo-dot { width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 2s infinite; }
+    .ob-step-label {
+      font-size:.75rem; font-weight:700; letter-spacing:1px;
+      color:rgba(255,255,255,.5); text-transform:uppercase; margin-bottom:6px;
+    }
+    .ob-question-title {
+      font-family:'Tajawal',sans-serif; font-size:1.4rem; font-weight:900;
+      color:var(--white); line-height:1.4;
+    }
+    /* progress */
+    .ob-progress-row {
+      display:flex; align-items:center; gap:10px; margin-top:20px;
+    }
+    .ob-progress-track {
+      flex:1; height:4px; background:rgba(255,255,255,.15); border-radius:10px; overflow:hidden;
+    }
+    .ob-progress-fill {
+      height:100%; background:var(--gold); border-radius:10px;
+      transition:width .4s cubic-bezier(.4,0,.2,1);
+    }
+    .ob-progress-text { font-size:.78rem; color:rgba(255,255,255,.5); white-space:nowrap; }
+    /* body */
+    .ob-body { padding:32px 36px 28px; }
+    /* type selector */
+    .type-selector {
+      display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px;
+    }
+    .type-btn {
+      padding:20px 16px; border-radius:var(--radius);
+      background:var(--glass); border:2px solid var(--glass-border);
+      cursor:pointer; text-align:center; transition:all .25s;
+    }
+    .type-btn:hover { border-color:rgba(59,91,219,.4); background:var(--blue-dim); }
+    .type-btn.active { border-color:var(--blue); background:var(--blue-dim); }
+    .type-btn i { font-size:1.8rem; margin-bottom:10px; display:block; color:var(--muted); transition:color .25s; }
+    .type-btn.active i { color:var(--blue); }
+    .type-btn h3 { font-size:.95rem; font-weight:700; margin-bottom:4px; }
+    .type-btn p { font-size:.75rem; color:var(--muted); }
+    /* welcome screen */
+    .welcome-screen { text-align:center; padding:12px 0 8px; }
+    .welcome-icon {
+      width:90px; height:90px; border-radius:50%;
+      background:linear-gradient(135deg,var(--blue-dim),rgba(91,127,255,.2));
+      border:2px solid rgba(59,91,219,.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.4rem; margin:0 auto 24px;
+      box-shadow:0 0 40px rgba(59,91,219,.2);
+    }
+    .welcome-screen h2 { font-family:'Tajawal',sans-serif; font-size:1.5rem; font-weight:900; margin-bottom:12px; }
+    .welcome-screen p { color:var(--muted); font-size:.92rem; line-height:1.8; max-width:400px; margin:0 auto 28px; }
+    /* footer */
+    .ob-footer {
+      padding:20px 36px 28px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-top:1px solid var(--glass-border);
+    }
+    .ob-back {
+      background:none; border:none; color:var(--muted);
+      font-family:'Cairo',sans-serif; font-size:.88rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; gap:6px;
+      transition:color .2s; padding:8px 0;
+    }
+    .ob-back:hover { color:var(--text); }
+    /* multi select note */
+    .multi-note { font-size:.78rem; color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+    /* scale */
+    .scale-labels { display:flex; justify-content:space-between; margin-top:8px; }
+    .scale-labels span { font-size:.72rem; color:var(--muted); }
+    /* done screen */
+    .done-screen { text-align:center; padding:16px 0 8px; }
+    .done-icon {
+      width:100px; height:100px; border-radius:50%;
+      background:var(--green-dim); border:2px solid rgba(34,197,94,.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.8rem; margin:0 auto 24px;
+      box-shadow:0 0 50px rgba(34,197,94,.15);
+      animation:fadeUp .5s ease;
+    }
+    .done-screen h2 { font-family:'Tajawal',sans-serif; font-size:1.6rem; font-weight:900; margin-bottom:12px; }
+    .done-screen p { color:var(--muted); font-size:.92rem; line-height:1.8; margin-bottom:28px; }
+    .profile-summary {
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--radius); padding:18px 20px; text-align:right;
+      margin-bottom:24px;
+    }
+    .profile-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; }
+    .profile-row:not(:last-child) { border-bottom:1px solid var(--glass-border); }
+    .profile-key { font-size:.82rem; color:var(--muted); font-weight:600; }
+    .profile-val { font-size:.85rem; font-weight:700; }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+  <div class="onboard-wrap">
+    <div class="onboard-box fade-in">
+
+      <!-- HEADER -->
+      <div class="ob-header">
+        <div class="ob-logo">
+          <div class="ob-logo-dot"></div>
+          <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+         
+        </div>
+        <div id="step-label" class="ob-step-label">الخطوة ١ من ٦</div>
+        <div id="question-title" class="ob-question-title">مرحباً بك في تقدر!</div>
+        <div class="ob-progress-row">
+          <div class="ob-progress-track">
+            <div class="ob-progress-fill" id="ob-progress" style="width:0%"></div>
+          </div>
+          <div class="ob-progress-text" id="ob-progress-text">0%</div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="ob-body" id="ob-body">
+        <!-- injected by JS -->
+      </div>
+
+      <!-- FOOTER -->
+      <div class="ob-footer">
+        <button class="ob-back" id="btn-back" onclick="prevStep()">
+          <i class="fa-solid fa-arrow-right"></i> رجوع
+        </button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextStep()">
+          التالي <i class="fa-solid fa-arrow-left"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+
+  let currentStep = 0; // 0=welcome, 1..N=questions, N+1=done
+  let userType = null; // 'student' | 'parent'
+  let answers = {};
+  let questions = [];
+
+  // ── RENDER STEP ──
+  function renderStep() {
+    const body = document.getElementById('ob-body');
+    const btnNext = document.getElementById('btn-next');
+    const btnBack = document.getElementById('btn-back');
+    const label = document.getElementById('step-label');
+    const title = document.getElementById('question-title');
+    const prog = document.getElementById('ob-progress');
+    const progTxt = document.getElementById('ob-progress-text');
+
+    const total = questions.length + 2; // welcome + questions + done
+    const pct = Math.round((currentStep / (total - 1)) * 100);
+    prog.style.width = pct + '%';
+    progTxt.textContent = pct + '%';
+
+    // WELCOME
+    if (currentStep === 0) {
+      label.textContent = 'مرحباً!';
+      title.textContent = 'أهلاً بك في تقدر';
+      btnBack.style.visibility = 'hidden';
+      btnNext.innerHTML = 'لنبدأ <i class="fa-solid fa-arrow-left"></i>';
+      body.innerHTML = `
+        <div class="welcome-screen">
+          <div class="welcome-icon"><i class="fa-solid fa-brain" style="color:var(--blue)"></i></div>
+          <h2>قبل أن نبدأ، أخبرنا عنك</h2>
+          <p>سنطرح عليك بعض الأسئلة البسيطة لنتعرف عليك ونُعدّ تجربة تعليمية مناسبة تماماً لك.</p>
+          <div style="margin-bottom:10px;font-size:.85rem;color:var(--text-soft);font-weight:700;">أنت...</div>
+          <div class="type-selector">
+            <div class="type-btn ${userType==='student'?'active':''}" onclick="selectType('student')">
+              <i class="fa-solid fa-child-reaching"></i>
+              <h3>طالب</h3>
+              <p>أنا أريد أن أتعلم</p>
+            </div>
+            <div class="type-btn ${userType==='parent'?'active':''}" onclick="selectType('parent')">
+              <i class="fa-solid fa-person"></i>
+              <h3>ولي أمر</h3>
+              <p>أريد تسجيل طفلي</p>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // DONE
+    if (currentStep > questions.length) {
+      label.textContent = 'اكتمل الملف!';
+      title.textContent = 'تم بناء ملفك الشخصي';
+      btnBack.style.visibility = 'hidden';
+      btnNext.innerHTML = 'التسجيل والمتابعة <i class="fa-solid fa-arrow-left"></i>';
+      btnNext.onclick = finishOnboarding;
+
+      const typeLabel = userType === 'student' ? 'طالب' : 'ولي أمر';
+      const ageAns = answers['q1'] || '—';
+      const focusAns = answers['q4'] || '—';
+      body.innerHTML = `
+        <div class="done-screen">
+          <div class="done-icon"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i></div>
+          <h2>ملفك جاهز!</h2>
+          <p>بنينا ملفك الشخصي بناءً على إجاباتك. تقدر سيُكيّف التجربة التعليمية خصيصاً لك.</p>
+          <div class="profile-summary">
+            <div class="profile-row">
+              <span class="profile-key">نوع المستخدم</span>
+              <span class="profile-val">${typeLabel}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-key">الفئة العمرية</span>
+              <span class="profile-val">${ageAns}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-key">مدة التركيز</span>
+              <span class="profile-val">${focusAns}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-key">عدد الإجابات</span>
+              <span class="profile-val">${Object.keys(answers).length} أسئلة</span>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // QUESTION
+    const q = questions[currentStep - 1];
+    label.textContent = `السؤال ${currentStep} من ${questions.length}`;
+    title.textContent = q.question;
+    btnBack.style.visibility = 'visible';
+    btnNext.innerHTML = currentStep === questions.length
+      ? 'إنهاء <i class="fa-solid fa-check"></i>'
+      : 'التالي <i class="fa-solid fa-arrow-left"></i>';
+    btnNext.onclick = nextStep;
+
+    let html = '';
+
+    if (q.type === 'choice') {
+      html = `<div class="choice-grid">` +
+        q.options.map(o => `
+          <div class="choice-card ${answers[q.id]===o.value?'selected':''}"
+               onclick="selectChoice('${q.id}','${o.value}',this)">
+            <div class="choice-icon"><i class="fa-solid ${o.icon}"></i></div>
+            <div>
+              <div class="choice-title">${o.label}</div>
+            </div>
+          </div>`).join('') +
+        `</div>`;
+    } else if (q.type === 'multi') {
+      const sel = answers[q.id] || [];
+      html = `<div class="multi-note"><i class="fa-solid fa-circle-info"></i> يمكنك اختيار أكثر من إجابة</div>
+        <div class="choice-grid">` +
+        q.options.map(o => `
+          <div class="choice-card ${sel.includes(o.value)?'selected':''}"
+               onclick="toggleMulti('${q.id}','${o.value}',this)">
+            <div class="choice-icon"><i class="fa-solid ${o.icon}"></i></div>
+            <div>
+              <div class="choice-title">${o.label}</div>
+            </div>
+          </div>`).join('') +
+        `</div>`;
+    } else if (q.type === 'scale') {
+      html = `<div class="scale-options">` +
+        q.options.map(o => `
+          <div class="scale-btn ${answers[q.id]===o?'selected':''}"
+               onclick="selectScale('${q.id}','${o}',this)">${o}</div>`).join('') +
+        `</div>
+        <div class="scale-labels">
+          <span>${q.label_min}</span>
+          <span>${q.label_max}</span>
+        </div>`;
+    }
+
+    body.innerHTML = html;
+  }
+
+  function selectType(type) {
+    userType = type;
+    questions = type === 'student' ? ONBOARDING_STUDENT : ONBOARDING_PARENT;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  function selectChoice(qid, val, el) {
+    answers[qid] = val;
+    document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('.choice-icon').classList.add('selected');
+  }
+
+  function toggleMulti(qid, val, el) {
+    if (!answers[qid]) answers[qid] = [];
+    const idx = answers[qid].indexOf(val);
+    if (idx === -1) { answers[qid].push(val); el.classList.add('selected'); }
+    else { answers[qid].splice(idx,1); el.classList.remove('selected'); }
+  }
+
+  function selectScale(qid, val, el) {
+    answers[qid] = val;
+    document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function nextStep() {
+    if (currentStep === 0 && !userType) {
+      showToast('من فضلك اختر: طالب أم ولي أمر', 'error'); return;
+    }
+    currentStep++;
+    renderStep();
+  }
+
+  function prevStep() {
+    if (currentStep > 0) { currentStep--; renderStep(); }
+  }
+
+  function finishOnboarding() {
+    Session.set('onboarding_done', true);
+    Session.set('onboarding_answers', answers);
+    Session.set('user_type_selected', userType);
+    goTo('register.html');
+  }
+
+  // init
+  renderStep();
+</script>
+</body>
+</html>

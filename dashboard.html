@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – لوحة التحكم</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* chart bars */
+    .weekly-chart { display:flex; align-items:flex-end; gap:8px; height:80px; margin-top:12px; }
+    .w-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .w-bar {
+      width:100%; border-radius:4px 4px 0 0;
+      background:linear-gradient(to top, var(--blue), #5b7fff);
+      transition:height .8s cubic-bezier(.4,0,.2,1);
+      min-height:4px;
+    }
+    .w-bar.today { background:linear-gradient(to top, var(--gold-dark), var(--gold)); }
+    .w-day { font-size:.65rem; color:var(--muted); }
+    /* badges */
+    .badges-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; }
+    .badge-item {
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      padding:14px 16px; border-radius:var(--radius);
+      background:var(--glass); border:1px solid var(--glass-border);
+      font-size:.72rem; color:var(--muted); font-weight:700;
+      transition:transform .2s;
+    }
+    .badge-item:hover { transform:translateY(-3px); }
+    .badge-item i { font-size:1.4rem; }
+    .badge-item.gold i { color:var(--gold); }
+    .badge-item.red i { color:#ef4444; }
+    .badge-item.blue i { color:var(--blue); }
+    /* lesson row */
+    .lesson-row {
+      display:flex; align-items:center; gap:16px;
+      padding:14px 0;
+    }
+    .lesson-row:not(:last-child) { border-bottom:1px solid var(--glass-border); }
+    .lesson-row-icon {
+      width:44px; height:44px; border-radius:12px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:1rem;
+    }
+    .lesson-row-info { flex:1; min-width:0; }
+    .lesson-row-title { font-weight:700; font-size:.9rem; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lesson-row-sub { font-size:.75rem; color:var(--muted); }
+    .lesson-row-score { font-family:'Tajawal',sans-serif; font-weight:900; font-size:1.1rem; }
+    /* greeting glow */
+    .greeting-card {
+      background:linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      border:1px solid rgba(59,91,219,.3);
+      border-radius:var(--radius-lg); padding:28px 32px;
+      position:relative; overflow:hidden; margin-bottom:28px;
+    }
+    .greeting-card::before {
+      content:''; position:absolute; top:-50px; left:-50px;
+      width:200px; height:200px; border-radius:50%;
+      background:radial-gradient(circle,rgba(245,200,66,.12),transparent);
+    }
+    .greeting-card::after {
+      content:''; position:absolute; bottom:-40px; right:-40px;
+      width:160px; height:160px; border-radius:50%;
+      background:radial-gradient(circle,rgba(255,255,255,.04),transparent);
+    }
+    .greeting-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
+    .greeting-text h2 { font-family:'Tajawal',sans-serif; font-size:1.5rem; font-weight:900; margin-bottom:6px; }
+    .greeting-text p { color:rgba(255,255,255,.7); font-size:.88rem; }
+    .greeting-level {
+      background:rgba(245,200,66,.15); border:1px solid rgba(245,200,66,.3);
+      border-radius:50px; padding:8px 18px;
+      font-size:.8rem; font-weight:700; color:var(--gold);
+      display:flex; align-items:center; gap:6px;
+    }
+    .level-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); animation:pulse 2s infinite; }
+    .greeting-progress { margin-top:24px; position:relative; z-index:1; }
+    .greeting-progress-label { display:flex; justify-content:space-between; font-size:.8rem; margin-bottom:8px; }
+    .greeting-progress-label span:first-child { color:rgba(255,255,255,.7); }
+    .greeting-progress-label span:last-child { font-weight:700; color:var(--gold); }
+    .greeting-track { height:8px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; }
+    .greeting-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--gold-dark),var(--gold)); }
+    /* 2-col grid */
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+    @media(max-width:900px){ .two-col,.three-col{ grid-template-columns:1fr; } .stats-row{ grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">
+      <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+    </a>
+    <div class="topbar-actions">
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="top-avatar">أ</div>
+        <span class="topbar-name" id="top-name">أحمد</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> خروج
+      </button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section-label">القائمة</div>
+      <a class="sidebar-item active" href="dashboard.html">
+        <i class="fa-solid fa-house"></i> الصفحة الرئيسية
+      </a>
+      <a class="sidebar-item" href="lesson.html">
+        <i class="fa-solid fa-book-open"></i> الدروس
+      </a>
+      <a class="sidebar-item" href="#">
+        <i class="fa-solid fa-chart-line"></i> التقارير
+      </a>
+      <a class="sidebar-item" href="#">
+        <i class="fa-solid fa-gear"></i> الإعدادات
+      </a>
+      <div class="sidebar-bottom">
+        <button class="sidebar-item" onclick="doLogout()">
+          <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- GREETING -->
+      <div class="greeting-card fade-up">
+        <div class="greeting-top">
+          <div class="greeting-text">
+            <h2 id="greet-msg">أهلاً بك!</h2>
+            <p id="greet-sub">اليوم يوم تعلّم رائع. يوسف ينتظرك!</p>
+          </div>
+          <div class="greeting-level">
+            <div class="level-dot"></div>
+            <span id="level-label">نجم صاعد</span>
+            <span style="color:var(--white);opacity:.5">·</span>
+            <span>المستوى <span id="level-num">4</span></span>
+          </div>
+        </div>
+        <div class="greeting-progress">
+          <div class="greeting-progress-label">
+            <span>التقدم العام</span>
+            <span id="prog-pct">٦٨٪</span>
+          </div>
+          <div class="greeting-track">
+            <div class="greeting-fill" id="main-progress" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats-row reveal">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fa-solid fa-book-open"></i></div>
+          <div class="stat-value" id="s-lessons">12</div>
+          <div class="stat-label">درساً مكتملاً</div>
+          <div class="progress-wrap">
+            <div style="font-size:.72rem;color:var(--muted);">من 20 درساً</div>
+            <div class="progress-track"><div class="progress-fill" id="pb-lessons" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon gold"><i class="fa-solid fa-fire"></i></div>
+          <div class="stat-value" id="s-streak">7</div>
+          <div class="stat-label">أيام متتالية</div>
+          <div style="margin-top:8px"><span class="badge badge-gold"><i class="fa-solid fa-medal"></i> سلسلة نشاط!</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fa-solid fa-star"></i></div>
+          <div class="stat-value" id="s-points">1,240</div>
+          <div class="stat-label">نقطة مكتسبة</div>
+          <div style="margin-top:8px"><span class="badge badge-green"><i class="fa-solid fa-arrow-trend-up"></i> +120 هذا الأسبوع</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="fa-solid fa-brain"></i></div>
+          <div class="stat-value" id="s-attention">74٪</div>
+          <div class="stat-label">نسبة التركيز</div>
+          <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill" id="pb-att" style="width:0%;background:linear-gradient(90deg,#7c3aed,#a855f7)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE ROW -->
+      <div class="two-col reveal" style="margin-bottom:20px">
+
+        <!-- Weekly chart -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-chart-bar" style="color:var(--blue)"></i> النشاط الأسبوعي</div>
+          <div class="weekly-chart" id="weekly-chart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px">
+            <div style="font-size:.8rem;color:var(--muted)">مجموع الجلسات هذا الأسبوع</div>
+            <div style="font-size:.88rem;font-weight:700;color:var(--gold)">14 جلسة</div>
+          </div>
+        </div>
+
+        <!-- Weekly report -->
+        <div class="card card-blue">
+          <div class="section-title"><i class="fa-solid fa-file-lines" style="color:var(--blue)"></i> ملخص الأسبوع</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted);font-size:.85rem"><i class="fa-regular fa-clock"></i> وقت التعلم</span>
+              <span style="font-weight:700;font-size:.9rem">4 ساعات و20 دقيقة</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted);font-size:.85rem"><i class="fa-solid fa-arrow-trend-up"></i> التحسن</span>
+              <span style="font-weight:700;color:var(--green)">+12٪</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted);font-size:.85rem"><i class="fa-solid fa-trophy"></i> أفضل مادة</span>
+              <span style="font-weight:700">رياضيات</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted);font-size:.85rem"><i class="fa-solid fa-face-smile"></i> المزاج العام</span>
+              <span class="badge badge-green">إيجابي</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted);font-size:.85rem"><i class="fa-solid fa-question-circle"></i> متوسط الكويز</span>
+              <span style="font-weight:700;color:var(--gold)">82٪</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="two-col reveal">
+
+        <!-- Recent lessons -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--gold)"></i> آخر الدروس</div>
+          <div id="recent-lessons"></div>
+          <a href="lesson.html" class="btn btn-ghost btn-sm" style="margin-top:16px;width:100%;justify-content:center">
+            <i class="fa-solid fa-arrow-left"></i> عرض كل الدروس
+          </a>
+        </div>
+
+        <!-- Badges -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-medal" style="color:var(--gold)"></i> الإنجازات</div>
+          <div class="badges-row" id="badges-row"></div>
+          <div style="margin-top:20px;padding:14px;background:var(--gold-dim);border:1px solid rgba(245,200,66,.2);border-radius:var(--radius)">
+            <div style="font-size:.78rem;color:var(--muted);margin-bottom:4px">الإنجاز القادم</div>
+            <div style="font-size:.88rem;font-weight:700">أكمل 15 درساً للحصول على وسام <span style="color:var(--gold)">الأبطال</span></div>
+            <div class="progress-track" style="margin-top:10px"><div class="progress-fill" style="width:80%"></div></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+  if (!guardAuth()) throw '';
+
+  const user = Session.currentUser();
+  const student = MOCK_USERS.student;
+  const p = MOCK_PROGRESS;
+
+  // topbar
+  document.getElementById('top-avatar').textContent = user.avatar || user.name.charAt(0);
+  document.getElementById('top-name').textContent = user.name;
+
+  // greeting
+  const hour = new Date().getHours();
+  const gr = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
+  document.getElementById('greet-msg').textContent = `${gr}، ${user.name}!`;
+  if (user.type === 'parent') {
+    document.getElementById('greet-sub').textContent = `${student.name} أكمل ${p.lessons_completed} درساً هذا الأسبوع. رائع!`;
+  } else {
+    document.getElementById('greet-sub').textContent = `لديك ${p.lessons_total - p.lessons_completed} دروس متبقية. هيّا نكمل!`;
+  }
+
+  document.getElementById('level-label').textContent = p.level_label;
+  document.getElementById('level-num').textContent = p.level;
+  document.getElementById('prog-pct').textContent = p.overall_percent + '٪';
+
+  // animate progress
+  setTimeout(() => {
+    animateProgress(document.getElementById('main-progress'), p.overall_percent);
+    animateProgress(document.getElementById('pb-lessons'), (p.lessons_completed/p.lessons_total)*100);
+    animateProgress(document.getElementById('pb-att'), p.attention_score);
+  }, 300);
+
+  // weekly chart
+  const days = ['ح','ن','ث','ر','خ','ج','س'];
+  const chart = document.getElementById('weekly-chart');
+  const max = Math.max(...p.weekly_sessions);
+  p.weekly_sessions.forEach((v, i) => {
+    const isToday = i === new Date().getDay();
+    chart.innerHTML += `
+      <div class="w-bar-wrap">
+        <div class="w-bar ${isToday?'today':''}" style="height:${(v/max)*100}%"></div>
+        <div class="w-day">${days[i]}</div>
+      </div>`;
+  });
+
+  // recent lessons
+  const rl = document.getElementById('recent-lessons');
+  p.recent_lessons.forEach(l => {
+    const lesson = MOCK_LESSONS.find(m => m.id === l.id);
+    rl.innerHTML += `
+      <div class="lesson-row" onclick="goTo('lesson.html')" style="cursor:pointer">
+        <div class="lesson-row-icon" style="background:${lesson?.color||'var(--blue)'}22;color:${lesson?.color||'var(--blue)'}">
+          <i class="fa-solid ${lesson?.icon||'fa-book'}"></i>
+        </div>
+        <div class="lesson-row-info">
+          <div class="lesson-row-title">${l.title}</div>
+          <div class="lesson-row-sub">${l.subject} · ${l.progress === 100 ? 'مكتمل' : l.progress + '٪ مكتمل'}</div>
+        </div>
+        ${l.score ? `<div class="lesson-row-score" style="color:var(--gold)">${l.score}٪</div>` : `<span class="badge badge-muted">جارٍ</span>`}
+      </div>`;
+  });
+
+  // badges
+  const br = document.getElementById('badges-row');
+  p.badges.forEach(b => {
+    br.innerHTML += `
+      <div class="badge-item ${b.color}">
+        <i class="fa-solid ${b.icon}"></i>
+        <span>${b.label}</span>
+      </div>`;
+  });
+
+  // scroll reveal
+  document.querySelectorAll('.reveal').forEach(el => {
+    new IntersectionObserver(([e]) => { if(e.isIntersecting) el.classList.add('visible'); }, {threshold:.1}).observe(el);
+  });
+
+  function doLogout() {
+    Session.remove('current_user');
+    goTo('login.html');
+  }
+</script>
+</body>
+</html>

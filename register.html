@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – إنشاء حساب</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .auth-wrap {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:40px 20px; position:relative; z-index:2;
+    }
+    .auth-box {
+      width:100%; max-width:480px;
+      background:rgba(11,21,48,0.88);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-xl);
+      backdrop-filter:blur(20px);
+      padding:44px 40px;
+      box-shadow:0 40px 100px rgba(0,0,0,.5);
+      animation:fadeUp .5s ease;
+    }
+    .auth-logo {
+      font-family:'Tajawal',sans-serif; font-size:1.6rem; font-weight:900;
+      display:flex; align-items:center; gap:8px; margin-bottom:32px;
+      text-decoration:none; color:var(--white);
+    }
+    .q { color:var(--gold); }
+     .logo-text { 
+      letter-spacing: -1px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: row-reverse;
+    }
+    .auth-logo .d { width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 2s infinite; }
+    .auth-title { font-family:'Tajawal',sans-serif; font-size:1.7rem; font-weight:900; margin-bottom:6px; }
+    .auth-sub { color:var(--muted); font-size:.88rem; margin-bottom:32px; line-height:1.6; }
+    .auth-footer { text-align:center; margin-top:24px; font-size:.85rem; color:var(--muted); }
+    .auth-footer a { color:var(--blue); font-weight:700; text-decoration:none; }
+    .auth-footer a:hover { text-decoration:underline; }
+    .input-icon-wrap { position:relative; }
+    .input-icon-wrap .fa { position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:.9rem; }
+    .input-icon-wrap .form-input { padding-right:44px; }
+    .user-type-row {
+      display:flex; gap:12px; margin-bottom:20px;
+    }
+    .user-type-btn {
+      flex:1; padding:12px; border-radius:var(--radius);
+      background:var(--glass); border:2px solid var(--glass-border);
+      cursor:pointer; text-align:center; transition:all .2s;
+      font-family:'Cairo',sans-serif; font-size:.85rem; font-weight:700;
+      color:var(--muted);
+    }
+    .user-type-btn i { display:block; font-size:1.3rem; margin-bottom:5px; }
+    .user-type-btn.active { border-color:var(--blue); background:var(--blue-dim); color:var(--blue); }
+    .divider-or {
+      display:flex; align-items:center; gap:12px; margin:24px 0;
+      color:var(--muted); font-size:.8rem;
+    }
+    .divider-or::before, .divider-or::after {
+      content:''; flex:1; height:1px; background:var(--glass-border);
+    }
+    /* mock hint */
+    .mock-hint {
+      background:var(--gold-dim); border:1px solid rgba(245,200,66,.2);
+      border-radius:var(--radius); padding:14px 16px;
+      margin-bottom:24px; font-size:.8rem; color:var(--text-soft);
+      line-height:1.7;
+    }
+    .mock-hint strong { color:var(--gold); }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <a href="../index.html" class="auth-logo">
+       <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+      </a>
+      <h1 class="auth-title">إنشاء حسابك</h1>
+      <p class="auth-sub">أهلاً! لنُكمل إعداد حسابك بناءً على ما أخبرتنا به.</p>
+
+      <div class="mock-hint">
+        <i class="fa-solid fa-circle-info"></i> &nbsp;
+        <strong>للتجربة:</strong> استخدم بيانات الحساب الوهمي أدناه أو أنشئ حسابك الخاص.<br/>
+        ولي الأمر: <strong>ahmed@taqdar.app / 123456</strong><br/>
+        الطالب: <strong>yaseen@taqdar.app / 123456</strong>
+      </div>
+
+      <div style="margin-bottom:16px; font-size:.85rem; font-weight:700; color:var(--text-soft);">أنا...</div>
+      <div class="user-type-row">
+        <div class="user-type-btn active" id="btn-parent" onclick="setType('parent')">
+          <i class="fa-solid fa-person"></i> ولي أمر
+        </div>
+        <div class="user-type-btn" id="btn-student" onclick="setType('student')">
+          <i class="fa-solid fa-child-reaching"></i> طالب
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">الاسم الكامل</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-user"></i>
+          <input class="form-input" id="inp-name" type="text" placeholder="أدخل اسمك الكامل"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input class="form-input" id="inp-email" type="email" placeholder="example@email.com"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input class="form-input" id="inp-pass" type="password" placeholder="كلمة مرور قوية"/>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" onclick="doRegister()">
+        <i class="fa-solid fa-user-plus"></i> إنشاء الحساب
+      </button>
+
+      <div class="auth-footer">
+        لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+
+  // pre-fill from onboarding
+  const prevType = Session.get('user_type_selected');
+  let selectedType = prevType || 'parent';
+  setType(selectedType);
+
+  function setType(t) {
+    selectedType = t;
+    document.getElementById('btn-parent').classList.toggle('active', t==='parent');
+    document.getElementById('btn-student').classList.toggle('active', t==='student');
+  }
+
+  function doRegister() {
+    const name  = document.getElementById('inp-name').value.trim();
+    const email = document.getElementById('inp-email').value.trim();
+    const pass  = document.getElementById('inp-pass').value;
+
+    if (!name || !email || !pass) { showToast('من فضلك أكمل جميع الحقول', 'error'); return; }
+
+    // mock: check if matches existing mock users
+    let user = null;
+    if (email === MOCK_USERS.parent.email && pass === MOCK_USERS.parent.password) {
+      user = { ...MOCK_USERS.parent, name };
+    } else if (email === MOCK_USERS.student.email && pass === MOCK_USERS.student.password) {
+      user = { ...MOCK_USERS.student, name };
+    } else {
+      // create new mock user
+      user = {
+        id: 'user_' + Date.now(),
+        type: selectedType,
+        name, email,
+        avatar: name.charAt(0),
+        child_id: selectedType === 'parent' ? 'student_001' : null
+      };
+    }
+
+    Session.set('current_user', user);
+    showToast('تم إنشاء الحساب بنجاح!');
+    setTimeout(() => goTo('dashboard.html'), 900);
+  }
+</script>
+</body>
+</html>

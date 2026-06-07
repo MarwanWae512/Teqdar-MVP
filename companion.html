@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تقدر – نور، مرشدك الذكي</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+
+    /* ══ LAYOUT ══ */
+    .companion-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr 260px;
+      gap: 0;
+      height: calc(100vh - 66px);
+      overflow: hidden;
+    }
+
+    /* ══ LEFT PANEL ══ */
+    .left-panel {
+      background: rgba(11,21,48,0.9);
+      border-left: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .left-panel-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .left-panel-title {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1rem; font-weight: 900;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .left-panel-title i { color: var(--blue); font-size: .9rem; }
+
+    /* mood selector */
+    .mood-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .mood-btn {
+      flex: 1; min-width: 60px;
+      padding: 8px 6px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm); cursor: pointer;
+      text-align: center; transition: all .2s;
+      font-family: 'Cairo', sans-serif;
+    }
+    .mood-btn:hover { border-color: rgba(59,91,219,.4); background: var(--blue-dim); }
+    .mood-btn.active { border-color: var(--blue); background: var(--blue-dim); }
+    .mood-btn-icon { font-size: 1.2rem; display: block; margin-bottom: 3px; }
+    .mood-btn-label { font-size: .65rem; color: var(--muted); font-weight: 600; }
+    .mood-btn.active .mood-btn-label { color: var(--blue); }
+
+    /* topics */
+    .topics-list {
+      flex: 1; overflow-y: auto; padding: 16px 12px;
+    }
+    .topic-section-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: 1.2px;
+      color: var(--muted); text-transform: uppercase;
+      padding: 0 8px; margin: 12px 0 6px;
+    }
+    .topic-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all .2s;
+      margin-bottom: 2px;
+    }
+    .topic-item:hover { background: var(--glass); }
+    .topic-item.active { background: var(--blue-dim); border-right: 2px solid var(--blue); }
+    .topic-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+    }
+    .topic-name { font-size: .85rem; font-weight: 600; }
+    .topic-item.active .topic-name { color: var(--blue); }
+    .topic-count {
+      margin-right: auto;
+      font-size: .7rem; color: var(--muted);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      padding: 2px 8px; border-radius: 50px;
+    }
+
+    /* ══ MAIN CHAT ══ */
+    .chat-main {
+      display: flex; flex-direction: column;
+      background: var(--bg);
+      position: relative; overflow: hidden;
+    }
+
+    /* AI header */
+    .ai-hero-header {
+      padding: 20px 28px 16px;
+      background: linear-gradient(180deg, rgba(11,21,48,.95) 0%, transparent 100%);
+      display: flex; align-items: center; gap: 16px;
+      border-bottom: 1px solid var(--glass-border);
+      position: relative; z-index: 2;
+      backdrop-filter: blur(10px);
+    }
+    .nour-avatar-wrap { position: relative; }
+    .nour-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), #5b7fff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; color: var(--white);
+      border: 2px solid rgba(245,200,66,.4);
+      box-shadow: 0 0 20px rgba(59,91,219,.4);
+      position: relative; z-index: 1;
+    }
+    .nour-pulse-ring {
+      position: absolute; inset: -6px; border-radius: 50%;
+      border: 1.5px solid rgba(59,91,219,.3);
+      animation: nour-pulse 2.5s ease infinite;
+    }
+    .nour-pulse-ring:nth-child(2) { inset: -12px; animation-delay: .5s; opacity: .5; }
+    @keyframes nour-pulse {
+      0%, 100% { transform: scale(1); opacity: .6; }
+      50% { transform: scale(1.08); opacity: .15; }
+    }
+    .nour-online-dot {
+      position: absolute; bottom: 2px; left: 2px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--green); border: 2px solid var(--bg2);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+      z-index: 2;
+    }
+    .nour-info h2 {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.1rem; font-weight: 900; margin-bottom: 2px;
+    }
+    .nour-status {
+      font-size: .75rem; color: var(--green);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .nour-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    .nour-badges { display: flex; gap: 6px; margin-right: auto; flex-wrap: wrap; }
+    .nour-badge {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 50px; padding: 4px 12px;
+      font-size: .7rem; font-weight: 700; color: var(--muted);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .nour-badge i { color: var(--gold); }
+
+    /* messages area */
+    .messages-area {
+      flex: 1; overflow-y: auto; padding: 24px 28px;
+      display: flex; flex-direction: column; gap: 16px;
+      scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
+    }
+
+    /* date divider */
+    .date-divider {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--muted); font-size: .72rem;
+      margin: 8px 0;
+    }
+    .date-divider::before, .date-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+
+    /* messages */
+    .msg-row { display: flex; gap: 10px; max-width: 78%; }
+    .msg-row.user { align-self: flex-start; flex-direction: row-reverse; }
+    .msg-row.bot  { align-self: flex-end; }
+
+    .msg-av {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 700;
+    }
+    .msg-row.bot  .msg-av { background: linear-gradient(135deg,var(--blue),#5b7fff); color: var(--white); }
+    .msg-row.user .msg-av { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,200,66,.3); font-size: .7rem; }
+
+    .msg-content { display: flex; flex-direction: column; gap: 4px; }
+    .msg-row.user .msg-content { align-items: flex-start; }
+    .msg-row.bot  .msg-content { align-items: flex-end; }
+
+    .msg-bubble {
+      padding: 12px 16px; border-radius: 18px;
+      font-size: .88rem; line-height: 1.75;
+      max-width: 100%; position: relative;
+    }
+    .msg-row.bot .msg-bubble {
+      background: linear-gradient(135deg, rgba(59,91,219,.18), rgba(91,127,255,.1));
+      border: 1px solid rgba(59,91,219,.25);
+      border-bottom-left-radius: 4px;
+    }
+    .msg-row.user .msg-bubble {
+      background: var(--glass-md);
+      border: 1px solid var(--glass-border);
+      border-bottom-right-radius: 4px;
+      text-align: right;
+    }
+    .msg-time { font-size: .65rem; color: var(--muted); padding: 0 4px; }
+
+    /* special message types */
+    .msg-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-top: 6px; min-width: 240px;
+    }
+    .msg-card-title { font-size: .8rem; font-weight: 700; margin-bottom: 8px; color: var(--gold); display: flex; align-items: center; gap: 6px; }
+    .msg-card-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0; font-size: .82rem; color: var(--text-soft);
+    }
+    .msg-card-item:not(:last-child) { border-bottom: 1px solid var(--glass-border); }
+    .msg-card-item i { color: var(--blue); font-size: .8rem; width: 14px; }
+
+    /* typing indicator */
+    .typing-row { display: flex; gap: 10px; align-self: flex-end; }
+    .typing-bubble {
+      background: linear-gradient(135deg, rgba(59,91,219,.18), rgba(91,127,255,.1));
+      border: 1px solid rgba(59,91,219,.25);
+      border-radius: 18px; border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      display: flex; gap: 5px; align-items: center;
+    }
+    .typing-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--blue); opacity: .5;
+      animation: bounce-dot .9s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .18s; }
+    .typing-dot:nth-child(3) { animation-delay: .36s; }
+    @keyframes bounce-dot {
+      0%, 100% { transform: translateY(0); opacity: .4; }
+      50% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* ── INPUT AREA ── */
+    .input-area {
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(7,13,31,.8);
+      backdrop-filter: blur(16px);
+      position: relative; z-index: 2;
+    }
+
+    /* suggestions chips */
+    .suggestions-row {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+      overflow-x: auto; padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .suggestions-row::-webkit-scrollbar { display: none; }
+    .suggestion-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 50px; cursor: pointer; white-space: nowrap;
+      font-family: 'Cairo', sans-serif; font-size: .78rem; font-weight: 600;
+      color: var(--text-soft); transition: all .22s;
+      animation: chipIn .3s ease both;
+    }
+    .suggestion-chip:hover {
+      background: var(--blue-dim);
+      border-color: rgba(59,91,219,.45);
+      color: var(--blue);
+      transform: translateY(-2px);
+    }
+    .suggestion-chip i { font-size: .75rem; color: var(--gold); }
+    @keyframes chipIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* input row */
+    .input-row {
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    .input-box-wrap {
+      flex: 1; position: relative;
+    }
+    .main-input {
+      width: 100%; padding: 13px 48px 13px 16px;
+      background: var(--glass-md); border: 1px solid var(--glass-border);
+      border-radius: 16px; color: var(--text);
+      font-family: 'Cairo', sans-serif; font-size: .9rem;
+      outline: none; resize: none; line-height: 1.5;
+      transition: border-color .2s, box-shadow .2s;
+      max-height: 120px; overflow-y: auto;
+    }
+    .main-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+    }
+    .main-input::placeholder { color: var(--muted); }
+    .input-emoji-btn {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1rem; transition: color .2s;
+    }
+    .input-emoji-btn:hover { color: var(--gold); }
+
+    .send-btn {
+      width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--blue), #5b7fff);
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white); font-size: .95rem;
+      box-shadow: 0 0 20px var(--blue-glow);
+      transition: box-shadow .2s, transform .2s;
+    }
+    .send-btn:hover { box-shadow: 0 0 32px var(--blue-glow); transform: scale(1.06); }
+    .send-btn:active { transform: scale(.96); }
+    .send-btn.loading { pointer-events: none; opacity: .7; }
+
+    .voice-btn {
+      width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: .95rem; transition: all .2s;
+    }
+    .voice-btn:hover { border-color: rgba(245,200,66,.4); color: var(--gold); }
+
+    /* ══ RIGHT PANEL ══ */
+    .right-panel {
+      background: rgba(11,21,48,0.9);
+      border-right: 1px solid var(--glass-border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .right-panel-header {
+      padding: 20px 16px 14px;
+      border-bottom: 1px solid var(--glass-border);
+      font-family: 'Tajawal', sans-serif;
+      font-size: .95rem; font-weight: 900;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .right-panel-header i { color: var(--gold); }
+    .right-panel-body { flex: 1; overflow-y: auto; padding: 14px 12px; }
+
+    /* nour stats */
+    .nour-stat {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius); padding: 14px 14px;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+    }
+    .nour-stat-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .9rem;
+    }
+    .nour-stat-val { font-family: 'Tajawal', sans-serif; font-size: 1.2rem; font-weight: 900; line-height: 1; }
+    .nour-stat-lbl { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+    /* capability cards */
+    .cap-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 8px; cursor: pointer;
+      transition: border-color .2s, transform .2s;
+    }
+    .cap-card:hover { border-color: rgba(59,91,219,.35); transform: translateX(-3px); }
+    .cap-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .cap-card-icon { color: var(--blue); font-size: .85rem; }
+    .cap-card-title { font-size: .83rem; font-weight: 700; }
+    .cap-card-desc { font-size: .75rem; color: var(--muted); line-height: 1.6; }
+
+    /*top bar edit */
+    .topbar {
+  position:static; top:0; inset-inline:0;}
+
+    /* memory section */
+    .memory-item {
+      display: flex; gap: 8px; padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      margin-bottom: 6px; font-size: .78rem; color: var(--text-soft);
+      align-items: flex-start;
+    }
+    .memory-item i { color: var(--gold); font-size: .75rem; margin-top: 2px; flex-shrink: 0; }
+
+    /* ══ RESPONSIVE ══ */
+    @media(max-width:1100px) {
+      .companion-layout { grid-template-columns: 240px 1fr; }
+      .right-panel { display: none; }
+    }
+    @media(max-width:760px) {
+      .companion-layout { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">
+      <span class="logo-text">
+          <span>te</span>
+          <span class="q">q</span>
+          <span>dar</span>
+        </span>
+    </a>
+    <div class="topbar-actions">
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="top-avatar">أ</div>
+        <span class="topbar-name" id="top-name">المستخدم</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> خروج
+      </button>
+    </div>
+  </nav>
+
+  <div class="companion-layout">
+
+    <!-- ══ LEFT PANEL ══ -->
+    <div class="left-panel">
+      <div class="left-panel-header">
+        <div class="left-panel-title">
+          <i class="fa-solid fa-face-smile"></i> كيف حالك اليوم؟
+        </div>
+        <div class="mood-row">
+          <div class="mood-btn active" onclick="setMood('happy',this)">
+            <span class="mood-btn-icon">😊</span>
+            <span class="mood-btn-label">سعيد</span>
+          </div>
+          <div class="mood-btn" onclick="setMood('confused',this)">
+            <span class="mood-btn-icon">😕</span>
+            <span class="mood-btn-label">محتار</span>
+          </div>
+          <div class="mood-btn" onclick="setMood('tired',this)">
+            <span class="mood-btn-icon">😴</span>
+            <span class="mood-btn-label">متعب</span>
+          </div>
+          <div class="mood-btn" onclick="setMood('excited',this)">
+            <span class="mood-btn-icon">🤩</span>
+            <span class="mood-btn-label">متحمس</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topics-list">
+        <div class="topic-section-label">المواضيع الدراسية</div>
+
+        <div class="topic-item active" onclick="setTopic(this,'رياضيات')">
+          <div class="topic-icon" style="background:rgba(59,91,219,.2);color:var(--blue)"><i class="fa-solid fa-calculator"></i></div>
+          <span class="topic-name">رياضيات</span>
+          <span class="topic-count">3 دروس</span>
+        </div>
+        <div class="topic-item" onclick="setTopic(this,'لغة عربية')">
+          <div class="topic-icon" style="background:rgba(124,58,237,.2);color:#a855f7"><i class="fa-solid fa-book-open"></i></div>
+          <span class="topic-name">لغة عربية</span>
+          <span class="topic-count">2 دروس</span>
+        </div>
+        <div class="topic-item" onclick="setTopic(this,'علوم')">
+          <div class="topic-icon" style="background:rgba(22,163,74,.2);color:var(--green)"><i class="fa-solid fa-flask"></i></div>
+          <span class="topic-name">علوم</span>
+          <span class="topic-count">2 دروس</span>
+        </div>
+
+        <div class="topic-section-label">محادثات شخصية</div>
+        <div class="topic-item" onclick="setTopic(this,'تحفيز')">
+          <div class="topic-icon" style="background:rgba(245,200,66,.15);color:var(--gold)"><i class="fa-solid fa-fire"></i></div>
+          <span class="topic-name">تحفيز ودعم</span>
+        </div>
+        <div class="topic-item" onclick="setTopic(this,'مراجعة')">
+          <div class="topic-icon" style="background:rgba(239,68,68,.12);color:#ef4444"><i class="fa-solid fa-rotate-right"></i></div>
+          <span class="topic-name">مراجعة عامة</span>
+        </div>
+
+        <div class="topic-section-label">أدوات</div>
+        <div class="topic-item" onclick="clearChat()">
+          <div class="topic-icon" style="background:var(--glass);color:var(--muted)"><i class="fa-solid fa-trash-can"></i></div>
+          <span class="topic-name" style="color:var(--muted)">مسح المحادثة</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MAIN CHAT ══ -->
+    <div class="chat-main">
+
+      <!-- AI hero header -->
+      <div class="ai-hero-header">
+        <div class="nour-avatar-wrap">
+          <div class="nour-pulse-ring"></div>
+          <div class="nour-pulse-ring" style="animation-delay:.6s"></div>
+          <div class="nour-avatar"><i class="fa-solid fa-robot"></i></div>
+          <div class="nour-online-dot"></div>
+        </div>
+        <div class="nour-info">
+          <h2>نور — مرشدك الذكي</h2>
+          <div class="nour-status">
+            <div class="nour-status-dot"></div>
+            متاح الآن · يتعلم معك
+          </div>
+        </div>
+        <div class="nour-badges">
+          <div class="nour-badge"><i class="fa-solid fa-bolt"></i> استجابة فورية</div>
+          <div class="nour-badge"><i class="fa-solid fa-shield-halved"></i> آمن</div>
+          <div class="nour-badge"><i class="fa-solid fa-brain"></i> ذكاء اصطناعي</div>
+        </div>
+      </div>
+
+      <!-- messages -->
+      <div class="messages-area" id="messages-area">
+        <div class="date-divider">اليوم</div>
+        <!-- injected by JS -->
+      </div>
+
+      <!-- input -->
+      <div class="input-area">
+        <!-- suggestion chips -->
+        <div class="suggestions-row" id="suggestions-row"></div>
+
+        <div class="input-row">
+          <button class="voice-btn" title="تسجيل صوتي">
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+          <div class="input-box-wrap">
+            <textarea class="main-input" id="main-input" rows="1"
+              placeholder="اسأل نور أي سؤال... أنا هنا للمساعدة!"
+              onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="input-emoji-btn"><i class="fa-regular fa-face-smile"></i></button>
+          </div>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RIGHT PANEL ══ -->
+    <div class="right-panel">
+      <div class="right-panel-header">
+        <i class="fa-solid fa-chart-line"></i> لوحة نور
+      </div>
+      <div class="right-panel-body">
+
+        <!-- nour stats -->
+        <div class="nour-stat">
+          <div class="nour-stat-icon" style="background:var(--blue-dim);color:var(--blue)"><i class="fa-solid fa-comments"></i></div>
+          <div>
+            <div class="nour-stat-val" id="stat-msgs">0</div>
+            <div class="nour-stat-lbl">رسالة اليوم</div>
+          </div>
+        </div>
+        <div class="nour-stat">
+          <div class="nour-stat-icon" style="background:var(--gold-dim);color:var(--gold)"><i class="fa-solid fa-fire"></i></div>
+          <div>
+            <div class="nour-stat-val">7</div>
+            <div class="nour-stat-lbl">أيام متتالية</div>
+          </div>
+        </div>
+        <div class="nour-stat">
+          <div class="nour-stat-icon" style="background:var(--green-dim);color:var(--green)"><i class="fa-solid fa-star"></i></div>
+          <div>
+            <div class="nour-stat-val">92٪</div>
+            <div class="nour-stat-lbl">نسبة الفهم</div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--glass-border);margin:14px 0"></div>
+
+        <!-- capabilities -->
+        <div style="font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">قدرات نور</div>
+
+        <div class="cap-card" onclick="insertPrompt('اشرح لي درس الجمع والطرح بطريقة بسيطة')">
+          <div class="cap-card-header">
+            <i class="fa-solid fa-chalkboard-teacher cap-card-icon"></i>
+            <span class="cap-card-title">الشرح المبسّط</span>
+          </div>
+          <div class="cap-card-desc">أشرح أي درس بطريقة سهلة وممتعة</div>
+        </div>
+        <div class="cap-card" onclick="insertPrompt('أعطني مثالاً على حروف المد في جملة')">
+          <div class="cap-card-header">
+            <i class="fa-solid fa-lightbulb cap-card-icon"></i>
+            <span class="cap-card-title">الأمثلة التطبيقية</span>
+          </div>
+          <div class="cap-card-desc">أضرب أمثلة واقعية لتثبيت المعلومة</div>
+        </div>
+        <div class="cap-card" onclick="insertPrompt('هل أنا مستعد لكويز الرياضيات؟')">
+          <div class="cap-card-header">
+            <i class="fa-solid fa-pen-to-square cap-card-icon"></i>
+            <span class="cap-card-title">التقييم الذاتي</span>
+          </div>
+          <div class="cap-card-desc">أساعدك تعرف مستواك ومدى استعدادك</div>
+        </div>
+        <div class="cap-card" onclick="insertPrompt('أنا حاسس بالإحباط اليوم')">
+          <div class="cap-card-header">
+            <i class="fa-solid fa-heart cap-card-icon"></i>
+            <span class="cap-card-title">الدعم العاطفي</span>
+          </div>
+          <div class="cap-card-desc">هنا دائماً للتحفيز والمساندة</div>
+        </div>
+
+        <div style="height:1px;background:var(--glass-border);margin:14px 0"></div>
+
+        <!-- memory -->
+        <div style="font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">ذاكرتي عنك</div>
+        <div class="memory-item"><i class="fa-solid fa-circle-dot"></i> تحب الرياضيات كثيراً</div>
+        <div class="memory-item"><i class="fa-solid fa-circle-dot"></i> أكملت 12 درساً حتى الآن</div>
+        <div class="memory-item"><i class="fa-solid fa-circle-dot"></i> تحتاج أمثلة بصرية</div>
+        <div class="memory-item"><i class="fa-solid fa-circle-dot"></i> تركيزك أفضل في الصباح</div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  initParticleBg('bg-canvas');
+  if (!guardAuth()) throw '';
+
+  const user = Session.currentUser();
+  document.getElementById('top-avatar').textContent = user.avatar || user.name.charAt(0);
+  document.getElementById('top-name').textContent   = user.name;
+
+  /* ══ STATE ══ */
+  let msgCount = 0;
+  let currentMood = 'happy';
+  let currentTopic = 'رياضيات';
+  let isTyping = false;
+
+  /* ══ SUGGESTIONS per context ══ */
+  const SUGGESTIONS = {
+    'رياضيات': [
+      { icon:'fa-calculator',  text:'اشرح لي الجمع والطرح' },
+      { icon:'fa-shapes',      text:'ما هي الأشكال الهندسية؟' },
+      { icon:'fa-percent',     text:'كيف أحسب النسبة المئوية؟' },
+      { icon:'fa-pen-to-square', text:'هل أنا مستعد للكويز؟' },
+      { icon:'fa-lightbulb',   text:'أعطني مثالاً تطبيقياً' },
+    ],
+    'لغة عربية': [
+      { icon:'fa-language',    text:'ما هي حروف المد؟' },
+      { icon:'fa-spell-check', text:'صحّح هذه الجملة لي' },
+      { icon:'fa-book',        text:'اشرح قواعد الإملاء' },
+      { icon:'fa-quote-right', text:'مثال على حروف الجر' },
+    ],
+    'علوم': [
+      { icon:'fa-seedling',    text:'ما الفرق بين النباتات والحيوانات؟' },
+      { icon:'fa-flask',       text:'اشرح دورة الماء في الطبيعة' },
+      { icon:'fa-sun',         text:'كيف تعمل الشمس؟' },
+      { icon:'fa-leaf',        text:'ما هي الكائنات الحية؟' },
+    ],
+    'تحفيز': [
+      { icon:'fa-fire',        text:'أحتاج تحفيزاً الآن' },
+      { icon:'fa-heart',       text:'أنا حاسس بالإحباط' },
+      { icon:'fa-star',        text:'أخبرني بنقاط قوتي' },
+      { icon:'fa-trophy',      text:'ما إنجازاتي حتى الآن؟' },
+    ],
+    'مراجعة': [
+      { icon:'fa-rotate-right',text:'راجع معي درس الرياضيات' },
+      { icon:'fa-list-check',  text:'ما الدروس التي أنجزتها؟' },
+      { icon:'fa-chart-line',  text:'كيف مستواي الآن؟' },
+    ],
+  };
+
+  const MOOD_RESPONSES = {
+    happy:   'رائع أنك بخير! هذا هو أفضل وقت للتعلم 🌟 بماذا تريد أن نبدأ اليوم؟',
+    confused:'لا تقلق، أنا هنا لأوضح كل شيء. ما الموضوع الذي يحيّرك؟ سنحله معاً خطوة بخطوة.',
+    tired:   'أفهمك، يحدث هذا! ما رأيك نبدأ بشيء خفيف وممتع؟ خمس دقائق كافية للبداية.',
+    excited: 'هذا الحماس يُسعدني! الطاقة الإيجابية تجعل التعلم أسرع وأمتع. هيّا نبدأ! 🚀',
+  };
+
+  /* ══ INIT ══ */
+  function init() {
+    renderSuggestions();
+    // welcome message
+    setTimeout(() => {
+      const name = user.type === 'student' ? user.name : 'ولي الأمر';
+      addBotMsg(`أهلاً يا ${name}! 👋 أنا <strong>نور</strong>، مرشدك الذكي في تقدر.<br/>أنا هنا لأساعدك في أي سؤال دراسي أو للتحدث معك في أي وقت. ما الذي تريد تعلّمه اليوم؟`);
+    }, 400);
+  }
+
+  /* ══ SUGGESTIONS ══ */
+  function renderSuggestions() {
+    const row = document.getElementById('suggestions-row');
+    const list = SUGGESTIONS[currentTopic] || SUGGESTIONS['رياضيات'];
+    row.innerHTML = list.map((s, i) => `
+      <div class="suggestion-chip" style="animation-delay:${i * .06}s" onclick="useSuggestion('${s.text}')">
+        <i class="fa-solid ${s.icon}"></i> ${s.text}
+      </div>`).join('');
+  }
+
+  function useSuggestion(text) {
+    document.getElementById('main-input').value = text;
+    sendMessage();
+  }
+
+  function insertPrompt(text) {
+    document.getElementById('main-input').value = text;
+    document.getElementById('main-input').focus();
+  }
+
+  /* ══ MOOD & TOPIC ══ */
+  function setMood(mood, el) {
+    currentMood = mood;
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    setTimeout(() => addBotMsg(MOOD_RESPONSES[mood]), 300);
+  }
+
+  function setTopic(el, topic) {
+    currentTopic = topic;
+    document.querySelectorAll('.topic-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderSuggestions();
+    setTimeout(() => {
+      const topicMsgs = {
+        'رياضيات': 'ممتاز! الرياضيات موضوعي المفضل أيضاً. ما الجزء الذي تريد أن نبدأ به؟',
+        'لغة عربية': 'لغتنا العربية جميلة! سنتعلمها معاً بطريقة ممتعة. عن ماذا تريد أن تسأل؟',
+        'علوم': 'العلوم مليئة بالأسرار الرائعة! دعنا نكتشفها معاً. ما الموضوع الذي يثير فضولك؟',
+        'تحفيز': 'أنا هنا دائماً لدعمك! أخبرني كيف تشعر وسنتحدث معاً.',
+        'مراجعة': 'مراجعة ممتازة تثبّت المعلومات. بماذا تريد أن تبدأ المراجعة؟',
+      };
+      addBotMsg(topicMsgs[topic] || 'رائع! كيف يمكنني مساعدتك؟');
+    }, 300);
+  }
+
+  /* ══ MESSAGES ══ */
+  function addBotMsg(html, withCard = null) {
+    const area = document.getElementById('messages-area');
+    const time = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+    const cardHTML = withCard ? `
+      <div class="msg-card">
+        <div class="msg-card-title"><i class="fa-solid fa-${withCard.icon}"></i> ${withCard.title}</div>
+        ${withCard.items.map(item => `
+          <div class="msg-card-item"><i class="fa-solid fa-chevron-left"></i> ${item}</div>`).join('')}
+      </div>` : '';
+    area.innerHTML += `
+      <div class="msg-row bot fade-in">
+        <div class="msg-av"><i class="fa-solid fa-robot" style="font-size:.8rem"></i></div>
+        <div class="msg-content">
+          <div class="msg-bubble">${html}${cardHTML}</div>
+          <div class="msg-time">${time}</div>
+        </div>
+      </div>`;
+    area.scrollTop = area.scrollHeight;
+    msgCount++;
+    document.getElementById('stat-msgs').textContent = msgCount;
+  }
+
+  function addUserMsg(text) {
+    const area = document.getElementById('messages-area');
+    const time = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+    const av = user.avatar || user.name.charAt(0);
+    area.innerHTML += `
+      <div class="msg-row user fade-in">
+        <div class="msg-av">${av}</div>
+        <div class="msg-content">
+          <div class="msg-bubble">${text}</div>
+          <div class="msg-time">${time}</div>
+        </div>
+      </div>`;
+    area.scrollTop = area.scrollHeight;
+    msgCount++;
+    document.getElementById('stat-msgs').textContent = msgCount;
+  }
+
+  function showTypingIndicator() {
+    const area = document.getElementById('messages-area');
+    area.innerHTML += `
+      <div class="typing-row fade-in" id="typing-ind">
+        <div class="msg-av" style="background:linear-gradient(135deg,var(--blue),#5b7fff);color:var(--white);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <i class="fa-solid fa-robot" style="font-size:.8rem"></i>
+        </div>
+        <div class="typing-bubble">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>`;
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    document.getElementById('typing-ind')?.remove();
+  }
+
+  /* ══ SMART RESPONSE ENGINE ══ */
+  function getSmartResponse(text) {
+    const t = text.toLowerCase();
+    // topic-specific responses
+    if (currentTopic === 'رياضيات') {
+      if (t.includes('جمع') || t.includes('طرح')) {
+        return {
+          text: 'الجمع والطرح من أساسيات الرياضيات! دعني أشرحهما بطريقة ممتعة:',
+          card: {
+            icon: 'calculator',
+            title: 'خطوات الجمع والطرح',
+            items: ['ابدأ دائماً من اليمين (الآحاد)', 'ثم انتقل للعشرات', 'مثال: ٢٤ + ١٣ = ٣٧', 'مثال: ٥٠ - ١٨ = ٣٢']
+          }
+        };
+      }
+      if (t.includes('كويز') || t.includes('اختبار') || t.includes('مستعد')) {
+        return { text: 'بناءً على أدائك السابق، أعتقد أنك مستعد جيداً! 💪 نتيجتك السابقة كانت ٩٠٪. انطلق للكويز وأنا واثق ستنجح!', card: null };
+      }
+      if (t.includes('شكل') || t.includes('هندسي')) {
+        return {
+          text: 'الأشكال الهندسية موجودة في حياتنا اليومية! إليك أهمها:',
+          card: {
+            icon: 'shapes',
+            title: 'الأشكال الهندسية الأساسية',
+            items: ['المثلث: ٣ أضلاع و٣ زوايا', 'المربع: ٤ أضلاع متساوية', 'المستطيل: ضلعان طويلان وضلعان قصيران', 'الدائرة: لا زوايا، محيط منحنٍ']
+          }
+        };
+      }
+    }
+    if (currentTopic === 'لغة عربية') {
+      if (t.includes('مد') || t.includes('حرف')) {
+        return {
+          text: 'حروف المد الثلاثة سهلة التذكر:',
+          card: {
+            icon: 'language',
+            title: 'حروف المد',
+            items: ['الألف: كِتَاب، بَاب، دَار', 'الواو: نُور، طُول، بُوم', 'الياء: بِيت، لَيل، كَيف', 'الفرق: يمدّون الصوت عند النطق']
+          }
+        };
+      }
+    }
+    if (currentTopic === 'علوم') {
+      if (t.includes('حي') || t.includes('كائن')) {
+        return {
+          text: 'الكائنات الحية لها مميزات تجعلها مختلفة عن الجمادات:',
+          card: {
+            icon: 'leaf',
+            title: 'مميزات الكائنات الحية',
+            items: ['تتنفس وتحتاج هواء', 'تأكل وتحتاج طاقة', 'تنمو وتتطور', 'تتكاثر وتنجب', 'تستجيب للبيئة']
+          }
+        };
+      }
+    }
+    // mood-based
+    if (t.includes('إحباط') || t.includes('تعب') || t.includes('صعب')) {
+      return { text: 'أسمعك جيداً ❤️ التعلم أحياناً يكون صعباً، وهذا طبيعي تماماً. خذ نفساً عميقاً، واعلم أن كل خطوة صغيرة تقدّم كبير. أنا هنا معك دائماً. ما الذي يصعب عليك تحديداً؟', card: null };
+    }
+    if (t.includes('ممتاز') || t.includes('شكر') || t.includes('رائع')) {
+      return { text: 'أنا سعيد لأنني أستطيع المساعدة! 🌟 أنت تتقدم بشكل ممتاز. استمر على هذا المستوى!', card: null };
+    }
+    if (t.includes('مراجع') || t.includes('تلخيص')) {
+      return {
+        text: 'إليك ملخص ما تعلمناه حتى الآن:',
+        card: {
+          icon: 'list-check',
+          title: 'ملخص دروسك',
+          items: ['الجمع والطرح — ٩٠٪ في الكويز', 'حروف المد — ٨٥٪ في الكويز', 'الكائنات الحية — قيد التعلم', 'الأشكال الهندسية — لم تبدأ بعد']
+        }
+      };
+    }
+    // default
+    const defaults = [
+      { text: 'سؤال رائع! دعني أفكر معك في هذا. الفهم يأتي بالتدريج، وأنا هنا لأساعدك خطوة بخطوة.', card: null },
+      { text: 'أحسنت على هذا السؤال! إليك ما أعرفه عن هذا الموضوع...', card: null },
+      { text: 'فهمت ما تقصده! دعنا نتعامل مع هذا الموضوع بطريقة مبسّطة وممتعة.', card: null },
+    ];
+    return defaults[Math.floor(Math.random() * defaults.length)];
+  }
+
+  /* ══ SEND ══ */
+  function sendMessage() {
+    const inp = document.getElementById('main-input');
+    const text = inp.value.trim();
+    if (!text || isTyping) return;
+    inp.value = '';
+    inp.style.height = 'auto';
+
+    addUserMsg(text);
+    isTyping = true;
+    const btn = document.getElementById('send-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    // simulate AI thinking
+    const delay = 900 + Math.random() * 700;
+    setTimeout(() => { showTypingIndicator(); }, 200);
+
+    setTimeout(() => {
+      removeTypingIndicator();
+      const resp = getSmartResponse(text);
+      addBotMsg(resp.text, resp.card);
+      isTyping = false;
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
+      // refresh suggestions
+      renderSuggestions();
+    }, delay);
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function clearChat() {
+    document.getElementById('messages-area').innerHTML = '<div class="date-divider">اليوم</div>';
+    msgCount = 0;
+    document.getElementById('stat-msgs').textContent = '0';
+    setTimeout(() => addBotMsg('تم مسح المحادثة. كيف يمكنني مساعدتك من جديد؟'), 300);
+  }
+
+  function doLogout() { Session.remove('current_user'); goTo('login.html'); }
+
+  /* ══ START ══ */
+  init();
+</script>
+</body>
+</html>
